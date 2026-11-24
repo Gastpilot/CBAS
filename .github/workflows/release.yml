@@ -1,0 +1,32 @@
+# Baut bei jeder neuen Version (Tag v*) eine fertige CBAS.zip und hängt sie ans Release.
+# In der Zip liegt direkt der Ordner "CBAS" - entpacken nach Interface\AddOns, fertig.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Zip bauen
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          zip -r "CBAS.zip" CBAS -x "*.DS_Store"
+          cp CBAS.zip "CBAS-${VERSION}.zip"
+      - name: Release anlegen
+        uses: softprops/action-gh-release@v2
+        with:
+          name: CBAS ${{ github.ref_name }}
+          body: |
+            **Download: `CBAS.zip`** (unten bei Assets) - nicht "Source code"!
+            Entpacken nach `World of Warcraft\_forever_\Interface\AddOns\`, dann WoW neu starten.
+            Danach muss es den Ordner `Interface\AddOns\CBAS` geben (ohne "-main").
+          files: |
+            CBAS.zip
+            CBAS-*.zip

@@ -9,9 +9,16 @@ WoW-Forever-Addon (Midnight-Client, Interface 16001). Befehl im Spiel: `/crap`
 | **Flipper** | AH- und Händler-Flips mit Auctionator/TSM: Autopilot-Taste, 2h-Modus, Lager & Einstellen, Sniper, Verlauf/Prognose, Claude-Tipps |
 | Zahnrad | Einstellungen |
 
-## Installation
-Ordner `CBAS` nach `World of Warcraft\_forever_\Interface\AddOns\` kopieren, WoW neu starten.
-Ausführliche Anleitung: [CBAS/LIESMICH.txt](CBAS/LIESMICH.txt)
+## Download & Installation
+1. **[⬇ CBAS.zip herunterladen](https://github.com/Gastpilot/CBAS/releases/latest/download/CBAS.zip)** (immer die neueste Version).
+2. Entpacken nach `World of Warcraft\_forever_\Interface\AddOns\`.
+   Danach muss es den Ordner `Interface\AddOns\CBAS` geben.
+3. WoW neu starten, im Spiel `/crap`.
+
+> ⚠️ Nicht „Code → Download ZIP“ benutzen. Dabei hängt GitHub „-main“ an den Ordnernamen, und WoW lädt das Addon dann nicht.
+> Wer es trotzdem so gemacht hat: aus `CBAS-main` nur den inneren Ordner `CBAS` nach `AddOns` kopieren.
+
+Ausführliche Anleitung: [CBAS/LIESMICH.txt](CBAS/LIESMICH.txt) · Alle Versionen: [Releases](https://github.com/Gastpilot/CBAS/releases)
 
 ## Grundregeln
 - **Leichtgewichtig:** Werte zwischenspeichern statt neu rechnen, Listen nur bei offenem Fenster und gedrosselt aufbauen, keine unbegrenzt wachsenden Tabellen, Aufräumen beim Einloggen.
