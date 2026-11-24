@@ -28,7 +28,14 @@ Ausführliche Anleitung: [CBAS/LIESMICH.txt](CBAS/LIESMICH.txt) · Alle Versione
 `tools/gen_tips.py` liest `WTF/Account/<Account>/SavedVariables/Auctionator.lua` und schreibt `CBAS/ClaudeTips.lua`:
 
 ```
-python3 tools/gen_tips.py <Pfad>/Auctionator.lua CBAS/ClaudeTips.lua
+python3 tools/gen_tips.py <Pfad>/Auctionator.lua CBAS/ClaudeTips.lua [neueste-Version]
 ```
+
+## Update-Hinweis im Spiel
+Zahnrad > Version zeigt die installierte Version und den Download-Link. Neue Versionen erfährt CBAS von anderen CBAS-Spielern in Gilde und Gruppe (unsichtbare Addon-Nachricht `CBASv`, höchstens alle 5 Min., nicht in Instanzen) und aus der Tipp-Datei.
+
+**Release-Ablauf:**
+1. `ns.VERSION` in `Core.lua` und `## Version` in `CBAS.toc` hochzählen.
+2. Ein Release `vX.Y.Z` veröffentlichen. Die `CBAS.zip` baut GitHub dann selbst (`.github/workflows/release.yml`).
 
 Benötigt `pip install lupa cbor2`. Die erzeugte Datei enthält deine Marktdaten. Im Repo liegt nur eine leere Vorlage.

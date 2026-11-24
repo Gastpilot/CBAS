@@ -3,6 +3,7 @@ from lupa import LuaRuntime
 import cbor2
 src = sys.argv[1] if len(sys.argv)>1 else 'Auctionator.lua'
 out = sys.argv[2] if len(sys.argv)>2 else 'ClaudeTips.lua'
+latest = sys.argv[3] if len(sys.argv)>3 else None   # neueste CBAS-Version auf GitHub (optional)
 DAY0=datetime.date(2020,1,1)
 la=LuaRuntime(encoding=None); la.execute(open(src,'rb').read()); G=la.globals()
 db=None; realm=None
@@ -124,7 +125,7 @@ summary=f"{nq} Schnell-Flips (2h) und {len(tips)-nq} Lang-Flips aus {stats['hist
 def lstr(s): return '"'+s.replace('\\','\\\\').replace('"','\\"')+'"'
 L=["-- Erzeugt von Claude aus deinen Auctionator-Scans ("+realm+"). Nicht von Hand bearbeiten.",
    f"CBAS_CLAUDE = {{ generated = {gen}, days = {len({d for v in db.values() if isinstance(v,dict) for d in (v.get(b'h') or {})})}, realm = {lstr(realm)},",
-   f"  summary = {{ text = {lstr(summary)} }},", "  items = {"]
+   f"  summary = {{ text = {lstr(summary)} }},"]+([f"  latest = {lstr(latest)},"] if latest else [])+["  items = {"]
 for t in tips:
     L.append(f"    [{t['id']}] = {{ rank = {t['rank']}, buyUpTo = {t['buyUpTo']}, sellAt = {t['sellAt']}, profit = {t['profit']}, quick = {'true' if t['quick'] else 'false'}, slope = {t['slope']}, t3 = {round(t['t3'] or 0,4)}, t7 = {round(t['t7'] or 0,4)}, t14 = {round(t['t14'] or 0,4)}, liq = {t['liq']}, conf = {t['conf']}, maxQty = {t['maxQty']}, forecast = {{ {', '.join(map(str,t['forecast']))} }}, reason = {lstr(t['reason'])} }},")
 L+=["  },","}",""]

@@ -1,4 +1,4 @@
-Craphunts Blacklisted Addon Suite (CBAS) 2.17.0 – Addon-Suite für WoW: Forever
+Craphunts Blacklisted Addon Suite (CBAS) 2.18.0 – Addon-Suite für WoW: Forever
 =====================================================
 
 AUFBAU DER SUITE
@@ -193,7 +193,22 @@ LEICHTGEWICHTIG BLEIBEN
 - Wer es noch leichter will: Einstellungen (Zahnrad) > "Namensplaketten
   mitlesen" aus - in vollen Städten der größte Dauerverbraucher.
 
+VERSION & UPDATES
+- Zahnrad > Version: installierte Version und der Download-Link, der immer
+  auf die neueste Version zeigt (Link anklicken, Strg+C, im Browser einfügen):
+  https://github.com/Gastpilot/CBAS/releases/latest/download/CBAS.zip
+- Neue Version: CBAS meldet sich im Chat, und am Zahnrad leuchtet ein grüner
+  Punkt. Woher CBAS das weiß (ins Internet darf ein Addon nicht):
+  * von anderen CBAS-Spielern in Gilde und Gruppe - jedes CBAS nennt beim
+    Einloggen/Gruppenbeitritt unsichtbar seine Version (höchstens alle 5 Min.,
+    nicht in Instanzen),
+  * aus der Claude-Tipp-Datei (Claude trägt die neueste GitHub-Version ein).
+- /crap version zeigt Version und Link im Chat.
+
 INSTALLATION
+0. Download (immer die neueste Version):
+   https://github.com/Gastpilot/CBAS/releases/latest/download/CBAS.zip
+   NICHT "Code > Download ZIP" auf GitHub (dann heißt der Ordner CBAS-main).
 1. Den Ordner "CBAS" nach
    World of Warcraft\_retail_\Interface\AddOns\
    kopieren (WoW Forever nutzt denselben AddOns-Ordner wie Retail).
