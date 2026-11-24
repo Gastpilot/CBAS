@@ -1,0 +1,361 @@
+Craphunts Blacklisted Addon Suite (CBAS) 2.17.0 – Addon-Suite für WoW: Forever
+=====================================================
+
+AUFBAU DER SUITE
+- /crap öffnet das Suite-Fenster. Oben sind Reiter für die einzelnen Module:
+  * GScout        - die Gildendatenbank. Oben neben den Reitern umschalten:
+                    "Gilden" | "Gildenlose" (gildenlose Spieler und Gildensucher)
+  * Geierwacht    - Loot-Kontrolle: passt der Bedarf-Wurf zur Klasse?
+  * Flipper       - AH-Flips und Händler-Flips planen (mit Auctionator/TSM)
+  * Einstellungen - Zahnrad oben rechts in der Titelleiste: alle Schalter,
+                    Datenbank-Statistik, Aufräumen
+- Das Fenster merkt sich den zuletzt geöffneten Reiter und seine Position.
+- Verschieben: an jeder freien Stelle (oder an der Titelleiste) mit der linken
+  Maustaste festhalten und ziehen. Zurück in die Mitte: /crap reset
+- GRÖSSE: Griff unten rechts ziehen = größer/kleiner (Schrift, Listen und Knöpfe
+  wachsen mit), Rechtsklick auf den Griff = Originalgröße. Alternativ "-"/"+" in
+  den Einstellungen oder /crap groesse 130 (60 bis 200 %). Wird gespeichert.
+- Knöpfe mit Wartezeit sind gesperrt und zählen im Knopf herunter:
+  Who, Instanz, 60er, Zuordnen, /who Gilde (5 s) und "In Gruppe melden" (10 s).
+- /crap gscout bzw. /crap settings öffnen direkt den jeweiligen Reiter.
+- Weitere Module kommen als zusätzliche Reiter dazu.
+
+GILDENLOS (eigener Reiter)
+- Alle Spieler, bei denen das Spiel keine Gilde meldet - vor allem aus /who
+  (Who-, 60er-, Städte-Scan) und von Spielern, die du siehst (nach kurzer
+  Nachprüfung, damit nicht "noch nicht geladen" als gildenlos zählt).
+- GILDENSUCHER: Schreibt jemand im Chat "suche Gilde", "sucht eine Raidgilde",
+  "LF guild" ..., wird er mit seiner Nachricht markiert (blau) und du bekommst
+  eine kurze Meldung (abschaltbar in den Einstellungen).
+  * "[noch in <Gilde>]" = sucht, obwohl er in einer Gilde ist (wechselwillig)
+  * "[jetzt in <Gilde>]" = hat inzwischen eine Gilde gefunden
+- Wer eine Gilde verlässt, wandert automatisch hierher ("war früher in ...");
+  wer einer Gilde beitritt, verschwindet aus der Liste.
+- Filter: nur Gildensucher, nur Max-Level, meine Fraktion, Suche (Name, Klasse,
+  Ort, Text). Spalten zum Sortieren anklicken.
+- Knöpfe: Anflüstern, /who Spieler (5 s Sperre), Notiz, Entfernen.
+- Bis zu 3000 Einträge; "Alte Gilden aufräumen" entfernt auch alte Gildenlose.
+
+GEIERWACHT (Loot-Kontrolle)
+- Läuft automatisch in Gruppe und Raid: Jeder Bedarf-Wurf und jede vergebene Beute
+  (ab Selten, z.B. per Plündermeister) wird geprüft:
+  * Rüstungsart: Stoff/Leder/Schwere Rüstung/Platte je Klasse
+    (Schwere Rüstung für Jäger/Schamanen und Platte erst ab Level 40)
+  * Waffenart: z.B. Schurke + Zweihandaxt, Priester + Bogen
+  * Schild, Buchband (Paladin), Götze (Druide), Totem (Schamane)
+  * "Klassen: ..." auf Set-Teilen
+  * Werte: z.B. Krieger auf Intelligenz/Willenskraft, Magier auf Stärke
+- Urteil: passt / fragwürdig / GEIER. Zwei Auffälligkeiten zusammen = Geier.
+  Niedrigere Rüstung mit passenden Werten (Krieger in Beweglichkeits-Leder) ist ok.
+  BoE-Beute wird extra markiert (lässt sich verkaufen).
+- MAIN- UND OFFSPEC je Spieler:
+  * Mainspec: aus der Inspektion (aktive Spezialisierung), sonst aus der
+    Gruppenrolle (Tank/Heiler/Schaden), sonst aus seinen Bedarf-Würfen.
+  * Offspec: aus seinen Bedarf-Würfen (welche Rollen-Ausrüstung er sammelt),
+    sonst "möglich: ..." laut Klasse.
+  * Gruppenmitglieder werden dafür im Hintergrund inspiziert (abschaltbar).
+  * Rollen: T = Tank, H = Heiler, Z = Zauber-DD, N = Nahkampf/Fern-DD.
+  * Jeder Gegenstand wird einer Rolle zugeordnet (Verteidigung/Ausweichen -> Tank,
+    Heilung/Mana -> Heiler, Zauberschaden -> Zauber-DD, Stärke/Bewegl./AP -> DD).
+  * Im Verlauf steht beim Urteil "Main", "Off" oder "keine Rolle".
+  * Optionale Regel MS>OS (Einstellungen): Mainspec-Bedarf auf Offspec-Beute
+    gilt als fragwürdig.
+- RUNS: Jede Instanz-Runde und jede Gruppen-Session wird als eigener Run geführt
+  (Ort, Schwierigkeit, Zeit, Dauer, Teilnehmer, Plündermethode, Gruppenleiter,
+  Würfe, Auffälligkeiten). Neuer Run beim Betreten einer Instanz mit Gruppe bzw.
+  bei der ersten Beute draußen; Ende beim Verlassen von Instanz/Gruppe oder nach
+  90 Min. ohne Aktivität.
+  Oben rechts "Run: ..." wählt einen Run (oder < > zum Blättern): Verlauf und
+  Spielerliste zeigen dann nur diesen Run, unten steht die Zusammenfassung.
+  In den Spielerdetails: Werte in diesem Run + mit wie vielen Runs er dabei war.
+- Bei unpassendem Bedarf kommt sofort eine Warnung im Chat (nur für dich).
+- Rechts: Spieler nach Geier-Wert. Spieler als Geier markieren (mit Notiz),
+  Info in den Gruppenchat schreiben (danach 10 s gesperrt), Werte zurücksetzen.
+- Markierte Geier stehen im Tooltip, und du wirst gewarnt, wenn einer in deine
+  Gruppe kommt.
+- Testen ohne Gruppe: /crap check Krieger [Gegenstand verlinken]
+- WICHTIG: In Instanzen sperrt WoW Forever den Beute-Chat für Addons. Dann nutzt
+  Geierwacht den Beuteverlauf des Spiels, falls Forever ihn liefert. Unten im
+  Reiter siehst du "gesperrt (Instanz): N", falls Meldungen blockiert wurden.
+
+LEISTUNGSKURVE (GScout, Knopf "Kurve" unten oder /crap kurve)
+- ALLE GILDEN: jede Gilde ein Balken, sortiert nach Leistungswert (0-100),
+  links die beste. Farben wie in der Liste: orange Top (70+), lila stark
+  (50+), blau solide (30+), grau darunter. Blass = wenig Daten.
+  Grüner Strich über dem Balken = rekrutiert gerade.
+  Maus über Balken = alle Teilwerte, Loot-System, Veränderung zur Vorwoche.
+  Klick = Gilde in der GScout-Liste öffnen.
+  Es gelten die Filter der Liste: z.B. "Meine Fraktion" + "Rekrutiert"
+  = nur Gilden, bei denen du dich bewerben kannst.
+- VERLAUF (TOP 10): Leistungswert der 10 besten Gilden über 30 Tage, dazu
+  Aufsteiger und Absteiger der Woche. CBAS speichert dafür ab Version 2.16
+  einmal am Tag den Wert jeder Gilde (ab Wert 20) - der Verlauf füllt sich
+  also erst mit der Zeit.
+
+FLIPPER (AH- und Händler-Flips)
+Braucht Auctionator (deine Scans), TSM optional. Kaufen und Einstellen ist
+immer ein Tastendruck von dir - das schreibt Blizzard vor. Klick-Programme,
+die die Taste für dich drücken, führen zum Bann.
+
+SCHNELLSTART (einmalig)
+  Optionen > Tastenbelegung > AddOns > "Flipper: AUTOPILOT" eine Taste geben
+  (z.B. F9). Mehr Tasten brauchst du nicht.
+
+JEDEN TAG
+  1. AH öffnen, mit Auctionator komplett scannen.
+  2. Autopilot-Taste immer wieder drücken. Jeder Druck macht EINEN Schritt:
+     - fertige Ware einstellen (1. Druck prüft den Preis, 2. stellt ein)
+     - sonst: nächstes Schnäppchen suchen -> kaufen -> bestätigen
+     Neben dem AH steht, was der nächste Druck tut (großer Knopf = Taste).
+  3. Am Briefkasten "CBAS: AH-Post abholen" - Gold und Rückläufer holen.
+  4. Einmal am Tag ausloggen und Claude bitten "werte meine Flip-Daten aus"
+     -> neue Tipp-Liste (ClaudeTips.lua), danach WoW neu starten.
+
+DER REITER FLIPPER
+- 1 · KAUFEN: eine Liste aus Claude-Tipps und eigener Analyse.
+  Grün hinterlegt / "KAUFEN" = gerade unter dem Kaufziel.
+  Modus 2h = Handelsware, die sich sicher in ca. 2 Stunden verkauft (immer
+  viel im AH, fast täglich gehandelt, ruhiger Preis, nicht fallend):
+  kaufen, sofort wieder einstellen (12-Std.-Auktion).
+  Modus Lang = Rezepte, Bücher, Ausrüstung: mehr Gewinn pro Stück, verkauft
+  sich in 1-3 Tagen (24-Std.-Auktion, ggf. neu einstellen).
+  Oben "Alle / 2h / Lang" filtert - gilt auch für Autopilot und Sniper.
+  "nur kaufbar" zeigt nur grüne Zeilen.
+  Quatsch ausblenden (Standard an): graue Sachen, weiße Ausrüstung/Waffen
+  (Hemden, Händlerwaffen), gebundene Sachen. Einzelne Gegenstände:
+  auswählen + "Ausblenden" (zurück: /crap flip ignore reset).
+  Unten: Min. Gewinn %, Budget pro Gegenstand, "Einstellen frühestens nach
+  Std." (0 = sofort; mehr, wenn du z.B. zur Raid-Zeit verkaufen willst -
+  CBAS erinnert dich dann mit Ton + Chat).
+- 2 · LAGER & VERKAUFEN: alles, was du über den Flipper gekauft hast:
+  Taschen, im AH, Ø Einkauf, Verkaufsziel, Gewinn, Status
+  ("Einstellen!", "im AH", "verkauft", "Markt zu billig - warten").
+  Einstellpreis = 1 Silber unter dem billigsten fremden Angebot (damit deins
+  zuerst verkauft wird), höchstens 25 % über dem Ziel und NIE unter
+  Einkauf + 5 % Gebühr + 3 %. Ist der Markt darunter, wartet CBAS.
+- MERKLISTE: eigene Gegenstände mit eigenem Kauf-/Verkaufspreis.
+- HÄNDLER-FLIPS: im AH billiger als der Händler zahlt; werden beim Händler
+  automatisch verkauft. Graue Gegenstände sind nur hier sinnvoll.
+- VERLAUF (oder Rechtsklick auf eine Zeile): Diagramm der letzten 21 Tage,
+  Median, Kaufziel, 3-Tage-Prognose, Trends für 3/7/14/21 Tage,
+  Trendwende/Preissprung, Raid-Woche, Ereignisse. Ohne Auswahl: dein Gewinn.
+
+KAUFHILFE-FENSTER NEBEN DEM AH
+  Mit der Maus verschieben (Position wird gespeichert), Strg + Mausrad =
+  größer/kleiner, Rechtsklick = zurück an den Standardplatz.
+  Großer Knopf = Autopilot. Darunter einzeln "Kaufen" und "Einstellen",
+  oben rechts der Sniper.
+
+SNIPER
+  Prüft deine Ziele reihum im AH (meistes Gold zuerst), so schnell das AH es
+  zulässt. Treffer = Alarmton + die Taste steht auf "Kaufen". Erlaubt das
+  Spiel die Suche nur per Tastendruck, läuft er im Handbetrieb (jeder Druck
+  prüft das nächste Ziel). Höchstmenge und Budget gelten.
+
+CLAUDE-TIPPS
+  Berechnet aus deinen Scans: Kauf bis, Verkauf für, Höchstmenge, Sicherheit,
+  Trend (3/7/14 Tage), Preissprünge und Trendwenden. Tipps älter als 3 Tage
+  werden nicht mehr benutzt. Mit wenig Scan-Tagen (unter 2 Wochen) ist die
+  Sicherheit meist nur "mittel".
+
+TERMINE & RAID-WOCHE
+  /crap flip event 10.12.2026 BWL-Start  (lila Linie im Verlauf)
+  /crap flip reset mi                    (Tag des Raid-Resets, blau)
+
+TASTEN (Tastenbelegung > AddOns)
+  Flipper: AUTOPILOT         - alles mit einer Taste (empfohlen)
+  Flipper: nächster Schritt  - nur kaufen
+  Flipper: Einstellen        - nur einstellen
+  Flipper: Sniper an/aus
+
+UMSTIEG VON GILDENSCOUT (Daten behalten)
+1. WoW komplett beenden.
+2. Ordner Interface\AddOns\GildenScout löschen.
+3. In WTF\Account\<DEIN ACCOUNT>\SavedVariables\ die Datei
+   GildenScout.lua in CBAS.lua umbenennen (GildenScout.lua.bak kann weg).
+4. Neuen Ordner CBAS nach Interface\AddOns kopieren, WoW starten.
+   Im Chat erscheint "Daten aus GildenScout übernommen".
+Der Gruppen-Sync funktioniert weiter mit Freunden, die noch GildenScout haben.
+
+LEICHTGEWICHTIG BLEIBEN
+- CBAS rechnet Leistungswerte, Preisstatistiken und Tooltips nur einmal und
+  merkt sie sich (2 Min. bzw. 30 Sek. bzw. bis zum nächsten AH-Besuch).
+- Die GScout-Liste baut sich höchstens alle 3 Sekunden neu auf und nur,
+  wenn das Fenster offen ist.
+- Die Flipper-Analyse nach dem AH-Besuch prüft erst grob ohne Speicher-
+  verbrauch und rechnet nur echte Kandidaten genau; sie fragt keine
+  unbekannten Gegenstände beim Server an.
+- Beim Einloggen räumt CBAS auf: Ein-Mann-Gilden ohne Werbung, die seit
+  45 Tagen niemand gesehen hat; höchstens 150 Flip-Vorschläge, 250
+  Geierwacht-Einträge, 1000 Buchungen.
+- /crap mem zeigt den Speicher von CBAS. Der Wert schwankt, weil WoW
+  ungenutzten Speicher erst nach und nach freigibt.
+- Wer es noch leichter will: Einstellungen (Zahnrad) > "Namensplaketten
+  mitlesen" aus - in vollen Städten der größte Dauerverbraucher.
+
+INSTALLATION
+1. Den Ordner "CBAS" nach
+   World of Warcraft\_retail_\Interface\AddOns\
+   kopieren (WoW Forever nutzt denselben AddOns-Ordner wie Retail).
+2. Im Charakterauswahl-Bildschirm unter "AddOns" "Craphunts Blacklisted Addon Suite" aktivieren.
+   Falls es als "veraltet" markiert ist: "Veraltete AddOns laden" anhaken.
+3. Im Spiel: /crap (oder über das AddOn-Menü an der Minikarte).
+
+WAS WIRD AUTOMATISCH GESAMMELT?
+- Jeder Spieler, den du mit der Maus berührst, anvisierst, in deiner Gruppe hast
+  oder als Namensplakette siehst -> Gilde, Rang, Level, Klasse, Fraktion.
+- Jede /who-Abfrage (auch deine eigenen) -> alle Gilden der Treffer.
+- Rekrutierungsnachrichten in Handel/Allgemein/Suche nach Gruppe/Sagen/Rufen/Flüstern:
+  erkennt Lootsystem (DKP, EPGP, GDKP, Loot Council, Softres, MS>OS, Bedarf/Gier ...),
+  Raidtage und -zeiten, Fokus (Raid, PvP, Casual, Sozial, RP, 18+ ...),
+  gesuchte Klassen/Rollen und Größenangaben.
+- Gildenfinder, falls Forever ihn anbietet (wird beim Durchblättern übernommen).
+
+WICHTIG ZU DEN ZAHLEN
+- "Gesehen" = Mitglieder, die DU schon gesehen hast. Die echte Gildengröße ist
+  meist größer. "/who Gilde" im Detailfenster zeigt, wie viele gerade online sind
+  (max. 50 pro Abfrage). Der höchste Wert wird gemerkt.
+- Das Lootsystem anderer Gilden kann ein Addon nicht direkt auslesen – es kommt
+  aus den Rekrutierungstexten. Was du im Gespräch erfährst, trägst du unter
+  "Loot (manuell)" ein.
+
+ZIEL VON GSCOUT: HIGH PERFORMER FINDEN + LOOTSYSTEM ERKENNEN
+- LEISTUNGSWERT 0-100 je Gilde (Spalte "Leistung", Filter "High Performer" = ab 50):
+  * Raid-Fortschritt (35): höchster Raid, in dem 5+ Mitglieder gleichzeitig
+    gesehen wurden (Naxx > AQ40 > BWL > MC/Ony > ZG/AQ20). Angaben wie "BWL 6/8"
+    oder "MC clear" aus der Werbung zählen zu 70 %.
+  * Raid-Aktivität (15): wie oft als Gruppe im Raid gesehen (30 Tage)
+  * Ausrüstung (20): Ø Itemlevel der inspizierten Mitglieder
+  * Max-Level & Aktivität (15), Größe (5), Ausrichtung (5), PvP-Titel (5)
+  Farben: orange = Top (70+), lila = stark (50+), blau = solide (30+).
+  "?" hinter dem Wert = noch wenig Daten. Im Profil steht die Aufschlüsselung
+  und die Top-Spieler der Gilde (Itemlevel, PvP-Titel).
+  Tipp: Instanz-Scan auf Raids, 60er-Scan und Mitglieder anvisieren (Itemlevel)
+  füllen den Wert am schnellsten.
+- LOOTSYSTEM mit Hinweisen und Sicherheit:
+  * Werbung (zählt 2), Chat von Gildenmitgliedern, z.B. "50 dkp geboten" (1),
+    eigene Runs mit dieser Gilde - Plündermethode aus der Geierwacht (3),
+    Gildenfinder (2), Mitspieler per Sync (max. 3), deine eigene Angabe (immer vorn).
+  * Ab 5 Punkten "sicher", ab 2 "wahrscheinlich", sonst "Hinweis".
+  * Ein beobachteter Plündermeister bestätigt DKP/EPGP/Loot Council/Softres.
+  * Spam-Wiederholungen derselben Werbung zählen nicht mehrfach.
+  * In der Liste: "DKP" = sicher, "DKP?" = noch nicht sicher.
+
+GILDENINFOS (alles, was das Spiel hergibt)
+- ECHTE GILDENGRÖSSE: Visierst du ein Gildenmitglied in deiner Nähe an (oder fährst
+  mit der Maus drüber), wird es im Hintergrund inspiziert. Das Spiel meldet dann die
+  tatsächliche Mitgliederzahl der Gilde. In der Liste grün: "143/34" = 143 echt,
+  34 von dir gesehen. Je Gilde höchstens alle 6 Std., abschaltbar: /crap inspect
+- Bei der Inspektion außerdem: Itemlevel und Spezialisierung/Rolle des Spielers
+  -> Ø Itemlevel und Rollenverteilung der Gilde.
+- PvP-Titel (z.B. Blutgardist, Ritter), Völker, Levelverteilung.
+- ONLINE-ZEITEN: wann die Mitglieder unterwegs sind (morgens/abends, Wochenende,
+  Spitzenzeit).
+- SPRACHE & LÄNDER: aus den Rekrutierungstexten (Deutsch, Englisch, Französisch,
+  Spanisch, Italienisch, Portugiesisch, Polnisch, Niederländisch, Russisch).
+  Ausdrückliche Angaben wie [DE], "DE/AT/CH", "english speaking" haben Vorrang.
+  Neue Spalte "Spr." in der Liste, z.B. "DE·AT·CH". Suche nach "de" oder "deutsch".
+- Gildenfinder-Text, falls Forever einen Gildenfinder hat (/crap finder).
+- NICHT möglich: Gildeninfo-Text, Nachricht des Tages oder Gildenbank fremder Gilden -
+  die zeigt das Spiel nur Mitgliedern.
+
+RAIDS & DUNGEONS
+- "Instanz-Scan" (unten): jeder Klick = /who auf einen Raid oder Dungeon.
+  Raids: MC, Ony, BWL, ZG, AQ20, AQ40, Naxx.
+  Dungeons: UBRS/LBRS, BRD, Strat, Scholo, Düsterbruch, Versunkener Tempel, Maraudon,
+  Zul'Farrak, Uldaman, Kloster, Hügel/Kral der Klingenhauer, Gnomeregan,
+  Tiefschwarze Grotte, Verlies, Burg Schattenfang, Höhlen des Wehklagens,
+  Todesminen, Flammenschlund.
+  Du siehst sofort, welche Gilden gerade drin sind. Sind 3+ Mitglieder einer Gilde
+  gleichzeitig drin, zählt das als Gildengruppe, inkl. Wochentag und Uhrzeit
+  -> so siehst du die ECHTEN Raid- und Dungeonzeiten.
+- Nur Raids scannen: /crap dungeons (schaltet Dungeons aus/an).
+- Oben rechts "Instanz: ..." filtert die Liste auf Gilden, die dort gesehen oder in
+  ihrer Werbung erwähnt wurden - sortiert nach Aktivität.
+- Auch normale /who-Treffer zählen: steht ein Spieler in einem Raid, wird es vermerkt.
+
+60ER-GEBIETE
+- "60er" (unten): jeder Klick = /who auf alle Level-60-Spieler in einem Endgame-
+  Gebiet: Silithus, Winterquell, Östliche/Westliche Pestländer, Brennende Steppe,
+  Schwarzfels, Teufelswald, Azshara, Un'Goro, Sengende Schlucht, Verwüstete Lande,
+  Totenwindpass, Mondlichtung.
+- "Stadt" (unten): eigener Knopf für die 60er in den Hauptstädten (Orgrimmar,
+  Unterstadt, Donnerfels, Sturmwind, Eisenschmiede, Darnassus). Volle Städte
+  werden automatisch nach Klassen aufgeteilt. /crap stadt
+  (Mit /crap staedte kommen die Städte zusätzlich in den 60er-Durchlauf.)
+- Ist ein Gebiet voll (50 Treffer = /who-Limit), fragen die nächsten Klicks
+  automatisch jede Klasse einzeln ab, damit niemand verloren geht.
+- Gebiete, in denen bei /who oft 60er stehen, lernt das Addon selbst dazu
+  (auch neue Forever-Gebiete).
+- Im Profil steht unter "Unterwegs in", wo die Mitglieder einer Gilde gesehen wurden.
+
+LAYER & WELT (damit ihr nicht alle dasselbe auslest)
+- Oben rechts im Fenster: dein Layer (z.B. "Layer #2/3 · Orgrimmar") und die Welt,
+  die Forever meldet (z.B. "CAMWOW EU4 Realm 7"). Auch in der GScout-Statuszeile:
+  "Auslesen auf Layer #2".
+- Erkannt wird der Layer an den IDs der NPCs: einen NPC anvisieren, mit der Maus
+  berühren oder Namensplaketten sehen. Nummern gelten je Zone (#1 = kleinste ID);
+  "#2/3" = Layer 2 von 3 bekannten. Wechselst du den Layer, kommt eine Meldung.
+- Im Gildenprofil: "Per /who gesehen auf Layer #1 Orgrimmar ...".
+- LAYER-PARTNER: in den Einstellungen Namen eintragen (Komma, Enter) oder
+  /crap partner add <Name>. Partner müssen in der Freundesliste stehen und CBAS
+  haben. Die Addons tauschen ihren Layer unsichtbar per Flüstern aus - das geht
+  auch über Layer hinweg (in einer Gruppe landet man ohnehin im selben Layer).
+  Maus über die Layer-Anzeige zeigt alle Partner; ist einer auf deinem Layer,
+  steht dort rot "GLEICHER LAYER" -> einer von euch wechselt.
+- /crap layer zeigt alles im Chat.
+
+HINWEISE ZU WOW FOREVER
+- Forever hat keine klassischen Realms. Das Addon führt Gilden deshalb nur über
+  ihren Namen. Alte Einträge werden beim ersten Login automatisch zusammengeführt.
+- Layering: /who zeigt meist nur Spieler auf deinem Layer. Chat-Kanäle (Handel,
+  Suche nach Gruppe, Gildenrekrutierung) und der Gruppen-Sync helfen, auch Gilden
+  von anderen Layern zu erfassen.
+- In Instanzen sperrt Forever den Chat für Addons - dort wird nichts gelesen.
+- Testaccounts und Veteranenaccounts dürfen keine Addon-Nachrichten senden.
+  Dann zeigt die Statuszeile "Sync vom Spiel blockiert".
+
+DATENAUSTAUSCH IN DER GRUPPE (SYNC)
+- Sind in deiner Gruppe/deinem Raid andere Spieler mit CBAS, tauschen die
+  Addons automatisch ihre Daten aus (Gilden, Fraktion, Gildenmeister, Ränge,
+  bis zu 30 Mitglieder je Gilde, Loot, Raidzeiten, letzte Rekrutierungstexte).
+- Läuft im Hintergrund und pausiert im Kampf. Rekrutierende Gilden werden zuerst
+  geschickt. Bis zu 300 Gilden pro Austausch.
+- Deine Notizen, Wertungen, Favoriten und Blacklist werden NICHT geteilt und
+  auch nie von fremden Daten überschrieben.
+- Ausschalten: /crap sync
+
+TIPPS
+- "Who-Scan" unten links: jeder Klick fragt einen Levelbereich bzw. eine Klasse
+  auf Max-Level ab. Ein paar Mal am Abend durchklicken füllt die Datenbank schnell.
+- "Unzugeordnet": Rekrutierungen ohne erkennbaren Gildennamen. Klick = /who auf
+  den Absender, danach wird die Nachricht der richtigen Gilde zugeordnet.
+- Mit Wertung, Favorit, Blacklist und Notizen behältst du den Überblick.
+- Im Tooltip eines Spielers siehst du sofort, was du über seine Gilde weißt.
+- "Export (CSV)" -> Strg+A, Strg+C, in Excel/Google Sheets einfügen.
+
+BEFEHLE
+/crap                 Fenster öffnen/schließen
+/crap scan            nächster Who-Scan-Schritt
+/crap raidscan        nächster Raid-Scan-Schritt
+/crap 60              nächster 60er-Gebiets-Scan
+/crap stadt           nächster Hauptstadt-Scan (60er)
+/crap groesse <Zahl>  Fenstergröße in Prozent
+/crap who <Gilde>     Gilde per /who prüfen
+/crap resolve         Rekrutierer ohne Gildennamen auflösen
+/crap export          CSV-Export (Gilden + alle Spieler)
+/crap log             Chat-Log mit Diagnose: erkannte, NICHT erkannte und rohe Nachrichten
+/crap gildenlos         Reiter Gildenlos öffnen
+/crap layer             Layer, Welt und Layer-Partner anzeigen
+/crap partner add|del <Name>  Layer-Partner verwalten
+/crap geier             Reiter Geierwacht öffnen
+/crap flip              Reiter Flipper · pilot (Autopilot-Schritt) · snipe · ignore reset · event TT.MM.JJJJ Name · reset mi (Ansichten: Claude-Tipps, Heute flippen, Merkliste, Händler-Flips) · add [Gegenstand] · find (analysieren) · budget <Gold>
+/crap check <Klasse> <Gegenstand>  passt der Gegenstand zur Klasse?
+/crap test <Text>     prüft, ob ein Text als Rekrutierung erkannt wird
+/crap finder [Text]   Gildenfinder durchsuchen (falls vorhanden)
+/crap debug           meldet jede erkannte Nachricht im Chat
+/crap purge [Tage]    alte Gilden ohne Notiz/Wertung löschen (Standard 60)
+/crap chat|tooltip|plates|recruitmsg|newmsg|sync|dungeons|staedte|inspect   Funktionen an/aus
+
+Daten liegen in WTF\Account\<Account>\SavedVariables\CBAS.lua
+In Instanzen und im Kampf sammelt das Addon nichts (Blizzard-Einschränkungen).

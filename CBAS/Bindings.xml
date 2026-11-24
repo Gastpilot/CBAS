@@ -1,0 +1,17 @@
+<Bindings>
+    <Binding name="CBAS_PILOT" header="CBAS" category="ADDONS">
+        CBAS.Flip.Pilot()
+    </Binding>
+    <Binding name="CBAS_FLIPSTEP" category="ADDONS">
+        CBAS.Flip.Step()
+    </Binding>
+    <Binding name="CBAS_FLIPSELL" category="ADDONS">
+        CBAS.Flip.Stock.Step()
+    </Binding>
+    <Binding name="CBAS_SNIPE" category="ADDONS">
+        CBAS.Flip.Snipe.Toggle()
+    </Binding>
+    <Binding name="CBAS_TOGGLE" category="ADDONS">
+        CBAS.Suite:Toggle()
+    </Binding>
+</Bindings>
