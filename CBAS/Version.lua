@@ -86,6 +86,19 @@ function V.Send(channel, force)
     if not force and lastSent[channel] and now - lastSent[channel] < THROTTLE then return end
     lastSent[channel] = now
     pcall(C_ChatInfo.SendAddonMessage, PREFIX, "V:" .. ns.VERSION, channel)
+    -- eigenes Land fuer die Chat-Flaggen der anderen
+    local c = ns.ChatFlags and ns.ChatFlags.My()
+    if c then pcall(C_ChatInfo.SendAddonMessage, PREFIX, "C:" .. c, channel) end
+end
+
+-- nach Aendern des eigenen Landes sofort in Gilde/Gruppe bekanntgeben
+function V.SendCountry()
+    local c = ns.ChatFlags and ns.ChatFlags.My()
+    if not c or not CanSend() then return end
+    local chans = {}
+    if IsInGuild and IsInGuild() then chans[#chans + 1] = "GUILD" end
+    if IsInRaid and IsInRaid() then chans[#chans + 1] = "RAID" elseif IsInGroup and IsInGroup() then chans[#chans + 1] = "PARTY" end
+    for _, ch in ipairs(chans) do pcall(C_ChatInfo.SendAddonMessage, PREFIX, "C:" .. c, ch) end
 end
 
 local function GroupChannel()
@@ -181,6 +194,10 @@ ev:SetScript("OnEvent", function(_, event, prefix, msg, channel, sender)
         if prefix ~= PREFIX then return end
         msg, sender = ns.S(msg), ns.S(sender)
         if type(msg) ~= "string" then return end
+        if msg:sub(1, 2) == "C:" then
+            if ns.ChatFlags then ns.ChatFlags.OnAddon(msg, sender) end
+            return
+        end
         local ver = msg:match("^V:(.+)$")
         if not ver then return end
         V.Note(ver, sender and ns.SplitName and ns.SplitName(sender) or sender)

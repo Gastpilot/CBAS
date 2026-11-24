@@ -1407,6 +1407,8 @@ SlashCmdList["CBAS"] = function(msg)
         else
             ns.Suite:Toggle("flipper")
         end
+    elseif cmd == "land" or cmd == "flagge" or cmd == "country" then
+        ns.ChatFlags.Slash(rest)
     elseif cmd == "version" or cmd == "update" then
         ns.Version.Slash()
     elseif cmd == "mem" or cmd == "speicher" then
@@ -1493,6 +1495,7 @@ SlashCmdList["CBAS"] = function(msg)
         print("  /crap gscout - Reiter GScout öffnen")
         print("  /crap gildenlos - Reiter Gildenlos (gildenlose Spieler, Gildensucher) öffnen")
         print("  /crap geier - Reiter Geierwacht (Loot-Kontrolle) öffnen")
+        print("  /crap land DE - dein Land für die Chat-Flaggen (an/aus: /crap land an|aus)")
         print("  /crap version - Version + Download-Link · /crap mem - Speicherverbrauch · /crap kurve - Leistungskurve")
         print("  /crap flip - Reiter Flipper · /crap flip add [Gegenstand] · /crap flip find (analysieren) · budget <Gold> · next (nächster Schritt, für Makros) · post · event TT.MM.JJJJ Name · reset mi · snipe")
         print("  /crap check <Klasse> <Gegenstand> - prüfen, ob ein Gegenstand zur Klasse passt")

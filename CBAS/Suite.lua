@@ -407,6 +407,7 @@ local function CreateSettings(p)
     info:SetText("Befehle: /crap (Fenster)  ·  /crap help (alle Befehle)  ·  /crap settings (diese Seite)  ·  /crap reset (Fenster zur Mitte)\nVerschieben: an jeder freien Stelle ziehen  ·  Größe: Griff unten rechts ziehen (Rechtsklick = Originalgröße)")
     p.info = info
     if ns.Version then ns.Version.BuildSettings(p) end
+    if ns.ChatFlags then ns.ChatFlags.BuildSettings(p) end
 
     local purge = CreateFrame("Button", nil, p, "UIPanelButtonTemplate")
     purge:SetSize(240, 22)
@@ -474,6 +475,7 @@ function Suite:OnScaleChanged() UpdateSizeLabel(self.panels and self.panels.sett
 local function ShowSettings(p)
     UpdateSizeLabel(p)
     if ns.Version then ns.Version.UpdateSettings() end
+    if ns.ChatFlags then ns.ChatFlags.UpdateSettings() end
     if p.partnerEdit and not p.partnerEdit:HasFocus() then
         local names = {}
         for _, f in ipairs((ns.Layer and ns.Layer.Partners()) or {}) do names[#names + 1] = ns.SplitName(f) end

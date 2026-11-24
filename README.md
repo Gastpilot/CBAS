@@ -7,7 +7,8 @@ WoW-Forever-Addon (Midnight-Client, Interface 16001). Befehl im Spiel: `/crap`
 | **GScout** | Gildendatenbank: Rekrutierung, Loot-System, Leistungswert, Layer, Leistungskurve · Ansicht „Gildenlose“ |
 | **Geierwacht** | Passt der Bedarf-Wurf zu Klasse und Spec? Main-/Offspec, Runs |
 | **Flipper** | AH- und Händler-Flips mit Auctionator/TSM: Autopilot-Taste, 2h-Modus, Lager & Einstellen, Sniper, Verlauf/Prognose, Claude-Tipps |
-| Zahnrad | Einstellungen |
+| Chat | Länderflaggen vor Spielernamen: `[Gruppe] 🇩🇪 Name` |
+| Zahnrad | Einstellungen, Version & Download-Link |
 
 ## Download & Installation
 1. **[⬇ CBAS.zip herunterladen](https://github.com/Gastpilot/CBAS/releases/latest/download/CBAS.zip)** (immer die neueste Version).
