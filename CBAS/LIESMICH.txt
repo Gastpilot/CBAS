@@ -1,4 +1,4 @@
-Craphunts Blacklisted Addon Suite (CBAS) 2.20.0 – Addon-Suite für WoW: Forever
+Craphunts Blacklisted Addon Suite (CBAS) 2.21.0 – Addon-Suite für WoW: Forever
 =====================================================
 
 AUFBAU DER SUITE
@@ -229,9 +229,15 @@ LÄNDERFLAGGEN IM CHAT
   2. eigene Angabe im Chat: "bin aus Österreich", "from Sweden", "[AT]"
   3. Sprache der eigenen Chatnachrichten (Deutsch -> DE, Französisch -> FR,
      Spanisch, Italienisch, Portugiesisch, Polnisch, Niederländisch, Russisch)
+  3b. Gruppensuche (LFGForever bzw. Blizzard-Gruppensuche): Suchst du nach
+     genau EINER Sprache, haben alle Treffer diese Client-Sprache - CBAS
+     merkt sich das für alle Gruppenmitglieder. Bei gemischter Suche zählt
+     die Sprache des Anzeigentextes (nur Anführer).
+     Tipp: in LFGForever ab und zu nur "Deutsch" bzw. nur "Englisch" suchen.
   4. Sprache der Gilde aus GScout (Notnagel)
-  Englisch ergibt keine Flagge (auf EU-Servern schreiben alle Englisch).
-  Unklar = keine Flagge. Deutsch schreibende Österreicher/Schweizer bekommen
+  Englisch: keine Länderflagge, sondern die Kennzeichnung EN (abschaltbar:
+  Zahnrad > Chat & Anzeige > "Englisch mit EN kennzeichnen").
+  Unklar = gar keine Kennzeichnung. Deutsch schreibende Österreicher/Schweizer bekommen
   erst nach eigener Angabe oder mit CBAS die richtige Flagge.
   Zahnrad > Chat: an/aus und "Mein Land" (Standard: Sprache deines WoW-Clients).
   Ohne CBAS beim anderen gibt es nur die Schätzung aus Chat und Gilde: WoW lässt

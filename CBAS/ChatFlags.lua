@@ -3,8 +3,10 @@
 --  1) CBAS-Spieler nennen ihr Land selbst (unsichtbare Addon-Nachricht)          -> sicher
 --  2) eigene Angabe im Chat ("bin aus Oesterreich", "from Sweden", "[AT]")         -> sehr wahrscheinlich
 --  3) Sprache der eigenen Chatnachrichten (Deutsch -> DE, Franzoesisch -> FR ...)  -> wahrscheinlich
+--  3b) Gruppensuche (LFGForever / Blizzard-Gruppensuche): Client-Sprache der Spieler,
+--      wenn nach genau einer Sprache gesucht wurde; sonst Sprache des Anzeigentextes
 --  4) Sprache der Gilde (GScout)                                                   -> Notnagel
--- Englisch ergibt keine Flagge (auf EU-Servern schreiben alle Englisch). Unklar = keine Flagge.
+-- Englisch bekommt keine Flagge, sondern die Kennzeichnung "EN" (abschaltbar). Unklar = nichts.
 local ADDON, ns = ...
 local S = ns.S
 local CF = {}
@@ -19,9 +21,13 @@ CF.NAMES = { DE = "Deutschland", AT = "Österreich", CH = "Schweiz", FR = "Frank
     RU = "Russland", UA = "Ukraine", GR = "Griechenland", TR = "Türkei", US = "USA", BR = "Brasilien" }
 local VALID = {}
 for _, c in ipairs(CF.CODES) do VALID[c] = true end
+VALID.EN = true          -- Sprach-Kennzeichnung, kein Land
 
 -- Sprache -> Land (Englisch bewusst nicht)
-local LANG2C = { DE = "DE", FR = "FR", ES = "ES", IT = "IT", PT = "PT", PL = "PL", NL = "NL", RU = "RU" }
+local LANG2C = { DE = "DE", FR = "FR", ES = "ES", IT = "IT", PT = "PT", PL = "PL", NL = "NL", RU = "RU", EN = "EN" }
+-- Client-Sprache (Gruppensuche) -> Sprache
+local LOC2LANG = { deDE = "DE", enUS = "EN", enGB = "EN", frFR = "FR", esES = "ES", esMX = "ES", itIT = "IT",
+    ptBR = "PT", ptPT = "PT", ruRU = "RU" }
 local LOCALE2C = { deDE = "DE", frFR = "FR", esES = "ES", itIT = "IT", ptPT = "PT", ptBR = "BR", ruRU = "RU", enGB = "GB" }
 
 -- eigene Angaben im Chat (klein geschrieben, ohne Muster - schnell)
@@ -53,6 +59,7 @@ end
 
 function CF.Icon(code, size)
     if not code or not VALID[code] then return "" end
+    if code == "EN" then return "|cff9fc5ffEN|r" end
     size = size or 11
     -- Textur 32x32, Flagge in den oberen 21 Zeilen
     return string.format("|T%s%s:%d:%d:0:0:32:32:0:32:0:21|t", PATH, code:lower(), size, math.floor(size * 1.5 + 0.5))
@@ -66,6 +73,7 @@ end
 -- Land eines Spielers bestimmen: Code, Quelle
 function CF.CountryOf(full)
     if not full then return nil end
+    full = ns.NormFull(full)
     if not CF.me then
         CF.me = ns.playerFull
     end
@@ -74,12 +82,15 @@ function CF.CountryOf(full)
     if e then
         if e.s then return e.s, "CBAS" end
         if e.e then return e.e, "eigene Angabe" end
+        if e.c and LANG2C[e.c] and (e.c ~= "EN" or ns.db.settings.flagEN ~= false) then return LANG2C[e.c], "Gruppensuche" end
         if e.v then
             local best, bv, second = nil, 0, 0
             for c, v in pairs(e.v) do
                 if v > bv then second = bv; best, bv = c, v elseif v > second then second = v end
             end
-            if best and bv >= 2 and bv > second * 2 and LANG2C[best] then return LANG2C[best], "Sprache" end
+            if best and bv >= 2 and bv > second * 2 and LANG2C[best] and (best ~= "EN" or ns.db.settings.flagEN ~= false) then
+                return LANG2C[best], "Sprache"
+            end
         end
     end
     local key = ns.db.players and ns.db.players[full]
@@ -92,7 +103,7 @@ function CF.CountryOf(full)
         end
         if only and VALID[only] then return only, "Gilde" end
         local l = g.langTag or g.lang
-        if l and LANG2C[l] then return LANG2C[l], "Gilde" end
+        if l and LANG2C[l] and (l ~= "EN" or ns.db.settings.flagEN ~= false) then return LANG2C[l], "Gilde" end
     end
 end
 
@@ -141,6 +152,86 @@ function CF.OnAddon(msg, sender)
     e.s, e.t = c, time()
     db[full] = e
     CF.Forget(full)
+end
+
+---------------------------------------------------------------------------
+-- Gruppensuche (LFGForever nutzt die Blizzard-Gruppensuche): Wird nach genau EINER Sprache
+-- gesucht, haben alle Treffer diese Client-Sprache. Sonst: Sprache des Anzeigentextes (nur Anfuehrer).
+---------------------------------------------------------------------------
+CF.lfgLang = nil
+local function OnLFGSearch(_, _, _, langFilter)
+    local t = langFilter
+    if t == nil and C_LFGList and C_LFGList.GetDefaultLanguageSearchFilter then
+        local ok, d = pcall(C_LFGList.GetDefaultLanguageSearchFilter)
+        if ok then t = d end
+    end
+    local one, n = nil, 0
+    if type(t) == "table" then
+        for code, on in pairs(t) do if on then n = n + 1; one = code end end
+    end
+    CF.lfgLang = (n == 1 and LOC2LANG[one]) or false
+end
+
+local function Readable(v)
+    if v == nil then return nil end
+    if canaccessvalue and not canaccessvalue(v) then return nil end
+    return S(v)
+end
+
+local lfgSeen, lfgSeenN = {}, 0
+local function NoteLFG(name, lang, field)
+    name = Readable(name)
+    if type(name) ~= "string" or name == "" or not lang then return end
+    local full = ns.NormFull(name)
+    -- dieselbe Anzeige nicht bei jeder neuen Suche erneut zaehlen
+    local key = full .. field .. lang
+    if lfgSeen[key] then return end
+    lfgSeen[key] = true
+    lfgSeenN = lfgSeenN + 1
+    if lfgSeenN > 2000 then wipe(lfgSeen); lfgSeenN = 0 end
+    local db = DB()
+    local e = db[full] or {}
+    if field == "c" then
+        e.c = lang
+    else
+        e.v = e.v or {}
+        e.v[lang] = math.min(20, (e.v[lang] or 0) + 2)
+    end
+    e.t = time()
+    db[full] = e
+    CF.Forget(full)
+end
+
+local lfgBusy = false
+function CF.OnLFGResults()
+    if lfgBusy or not (C_LFGList and C_LFGList.GetSearchResults) then return end
+    lfgBusy = true
+    C_Timer.After(0.5, function()
+        lfgBusy = false
+        local ok, _, results = pcall(C_LFGList.GetSearchResults)
+        if not ok or type(results) ~= "table" then return end
+        local lang = CF.lfgLang
+        for i, id in ipairs(results) do
+            if i > 200 then break end
+            local ok2, info = pcall(C_LFGList.GetSearchResultInfo, id)
+            if ok2 and type(info) == "table" then
+                if lang then
+                    local nm = Readable(info.numMembers) or 1
+                    for m = 1, math.min(40, tonumber(nm) or 1) do
+                        local ok3, mi = pcall(C_LFGList.GetSearchResultPlayerInfo, id, m)
+                        if ok3 and type(mi) == "table" then NoteLFG(mi.name, lang, "c") end
+                    end
+                    NoteLFG(info.leaderName, lang, "c")
+                elseif ns.DetectLanguage then
+                    local txt = (Readable(info.name) or "") .. " " .. (Readable(info.comment) or "")
+                    if #txt > 12 then
+                        local tl = ns.DetectLanguage(txt)
+                        if tl then NoteLFG(info.leaderName, tl, "v") end
+                    end
+                end
+            end
+        end
+    end)
 end
 
 -- Haushalt: Eintraege aelter als 60 Tage weg, hoechstens 4000
@@ -213,7 +304,7 @@ end
 ---------------------------------------------------------------------------
 function CF.BuildSettings(p)
     local box = CreateFrame("Frame", nil, p, "BackdropTemplate")
-    box:SetSize(330, 140)
+    box:SetSize(330, 164)
     if p.versionBox then box:SetPoint("TOPRIGHT", p.versionBox, "BOTTOMRIGHT", 0, -8) else box:SetPoint("TOPRIGHT", -22, -164) end
     if box.SetBackdrop then
         box:SetBackdrop({ bgFile = "Interface\\ChatFrame\\ChatFrameBackground", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -247,8 +338,16 @@ function CF.BuildSettings(p)
     mmt:SetText("Minimap-Knopf anzeigen")
     mm:SetScript("OnClick", function(c2) if ns.Standards then ns.Standards.SetMinimap(c2:GetChecked()) end end)
     box.mm = mm
+    local en = CreateFrame("CheckButton", nil, box, "UICheckButtonTemplate")
+    en:SetSize(24, 24)
+    en:SetPoint("TOPLEFT", 8, -90)
+    local ent = en:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    ent:SetPoint("LEFT", en, "RIGHT", 2, 1)
+    ent:SetText("Englisch mit |cff9fc5ffEN|r kennzeichnen")
+    en:SetScript("OnClick", function(c2) ns.db.settings.flagEN = c2:GetChecked() and true or false; wipe(cache) end)
+    box.en = en
     local ml = box:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    ml:SetPoint("TOPLEFT", 12, -102)
+    ml:SetPoint("TOPLEFT", 12, -126)
     ml:SetText("Mein Land:")
     local prev = CreateFrame("Button", nil, box, "UIPanelButtonTemplate")
     prev:SetSize(22, 20)
@@ -288,6 +387,7 @@ function CF.UpdateSettings()
     box.cb:SetChecked(Enabled())
     box.lc:SetChecked(ns.db.settings.layerChat and true or false)
     box.mm:SetChecked(not ns.db.settings.minimapHide)
+    box.en:SetChecked(ns.db.settings.flagEN ~= false)
     local c = CF.My()
     box.cur:SetText(c and (CF.Icon(c, 14) .. " " .. (CF.NAMES[c] or c)) or "|cff888888nicht gesetzt|r")
 end
@@ -325,8 +425,12 @@ ev:SetScript("OnEvent", function(_, event, text, author)
     if event == "PLAYER_LOGIN" then
         for _, e in ipairs(CHAT) do pcall(ev.RegisterEvent, ev, e) end
         HookAll()
+        if hooksecurefunc and C_LFGList and C_LFGList.Search then pcall(hooksecurefunc, C_LFGList, "Search", OnLFGSearch) end
+        pcall(ev.RegisterEvent, ev, "LFG_LIST_SEARCH_RESULTS_RECEIVED")
         if hooksecurefunc and FCF_OpenTemporaryWindow then hooksecurefunc("FCF_OpenTemporaryWindow", HookAll) end
         C_Timer.After(15, function() pcall(CF.Cleanup) end)
+    elseif event == "LFG_LIST_SEARCH_RESULTS_RECEIVED" then
+        if Enabled() then pcall(CF.OnLFGResults) end
     elseif Enabled() then
         pcall(Learn, text, author)
     end
