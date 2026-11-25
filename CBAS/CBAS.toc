@@ -2,7 +2,7 @@
 ## Title: |cff33ccffCraphunts Blacklisted Addon Suite|r
 ## Notes: Gildendatenbank: sammelt automatisch alle Gilden, denen du begegnest, inkl. Rekrutierung, Lootsystem, Mitgliedern und Raidzeiten. /crap
 ## Author: Craphunt
-## Version: 2.19.1
+## Version: 2.19.2
 ## OptionalDeps: Auctionator, TradeSkillMaster
 ## SavedVariables: CBASDB, GildenScoutDB
 ## IconTexture: Interface\Icons\INV_Misc_Spyglass_03

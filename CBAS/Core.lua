@@ -2,7 +2,7 @@
 local ADDON, ns = ...
 _G.CBAS = ns
 
-ns.VERSION = "2.19.1"
+ns.VERSION = "2.19.2"
 local PREFIX = "|cff33ccffCBAS|r: "
 
 function ns.Print(...)
@@ -71,34 +71,44 @@ end
 
 -- WoW Forever hat keine klassischen Realms: GetRealmName() liefert z.B. "CAMWOW EU4 Realm 7",
 -- in Spielernamen steht aber der Heimat-Realm (z.B. "Treoninka"). Massgeblich ist UnitFullName.
+-- WoW Forever: Es gibt keine Realms im klassischen Sinn - Spieler haben VOR- UND NACHNAMEN
+-- ("Fdtd Waechter", "Craphunt Qt"). Je nach Quelle liefert WoW den Nachnamen unterschiedlich:
+--   Chat:            "Fdtd Waechter"           (mit Leerzeichen)
+--   UnitName/Who/...: "Azuryss", "Stormweaver"  (Nachname im Realm-Feld -> "Azuryss-Stormweaver")
+-- Einheitliche Schreibweise in CBAS: "Vorname Nachname". Der Server-Name (GetRealmName, z.B.
+-- "CAMWOW EU4 Realm 7") ist der einzige echte "Realm" und wird nie an Namen gehaengt.
 function ns.MyRealm()
     if ns.myRealm then return ns.myRealm end
-    local r
-    if UnitFullName then
-        local _, ur = UnitFullName("player")
-        if ur and ur ~= "" then r = ur end
-    end
-    if not r then r = GetNormalizedRealmName and GetNormalizedRealmName() end
-    if not r or r == "" then
-        -- noch nicht verfuegbar (sehr frueh beim Laden) -> nicht dauerhaft merken
-        return ((GetRealmName and GetRealmName()) or "Unbekannt"):gsub("[%s%-]", "")
-    end
-    ns.myRealm = r
-    return r
+    local r = (GetNormalizedRealmName and GetNormalizedRealmName()) or (GetRealmName and GetRealmName())
+    if not r or r == "" then return "?" end
+    ns.myRealm = r:gsub("[%s%-]", "")
+    return ns.myRealm
 end
 
+-- eigener Nachname (Forever liefert ihn bei UnitFullName im Realm-Feld)
+function ns.MySurname()
+    if ns.mySurname ~= nil then return ns.mySurname or nil end
+    local _, s = UnitFullName and UnitFullName("player")
+    if s and s ~= "" then ns.mySurname = s; return s end
+    return nil
+end
+
+-- Name + "Realm"-Feld einer API -> "Vorname Nachname"
 function ns.FullName(name, realm)
-    if not realm or realm == "" then realm = ns.MyRealm() end
-    return name .. "-" .. realm
+    if type(name) ~= "string" then return name end
+    if not realm or realm == "" then return ns.NormFull(name) end
+    local r = realm:gsub("[%s%-]", "")
+    if ns.realmAliases and ns.realmAliases[r] then return ns.NormFull(name) end
+    return ns.NormFull(name .. " " .. realm)
 end
 
+-- Anzeige-Name und "Realm" (es gibt keinen -> immer der eigene Server, damit nie etwas angehaengt wird)
 function ns.SplitName(full)
-    local name, realm = full:match("^([^%-]+)%-(.+)$")
-    if not name then return full, ns.MyRealm() end
-    return name, realm
+    if type(full) ~= "string" then return full, ns.MyRealm() end
+    return ns.NormFull(full), ns.MyRealm()
 end
 
--- Alle Schreibweisen des eigenen Realms (Forever: Heimat-Realm vs. Server-Name)
+-- Alle Schreibweisen des Servers (nur der echte Server-Name, NIE ein Nachname)
 function ns.BuildRealmAliases()
     local a = {}
     local function add(r)
@@ -109,17 +119,21 @@ function ns.BuildRealmAliases()
     end
     add(GetNormalizedRealmName and GetNormalizedRealmName())
     add(GetRealmName and GetRealmName())
-    add(ns.MyRealm())
     ns.realmAliases = a
 end
 
--- Einheitlicher Spielername "Name-Realm"
+-- Einheitlicher Spielername "Vorname Nachname"
 function ns.NormFull(full)
     if type(full) ~= "string" or full == "" then return full end
-    local name, realm = ns.SplitName(full)
-    realm = realm:gsub("%s", "")
-    if ns.realmAliases and ns.realmAliases[realm] then realm = ns.MyRealm() end
-    return name .. "-" .. realm
+    local a, b = full:match("^(.-)%-([^%-]+)$")
+    if not a or a == "" then return full end
+    local rb = b:gsub("%s", "")
+    if ns.realmAliases and ns.realmAliases[rb] then return a end          -- echter Server-Name: weg
+    if a:find(" ", 1, true) then
+        -- "Vorname Nachname-XY": XY ist ein Altlast-Anhang (frueher eigener Nachname als "Realm")
+        return a
+    end
+    return a .. " " .. b                                                   -- "Azuryss-Stormweaver" -> "Azuryss Stormweaver"
 end
 
 -- Doppelte Spieler zusammenfuehren (gleicher Name, andere Realm-Schreibweise)
@@ -248,6 +262,59 @@ function ns.MergeGuildInto(a, b)
 end
 
 -- Alte Schluessel "Gilde-Realm" auf "Gilde" umstellen
+-- Einmalige Umstellung (2.19.2): Namen in allen Tabellen auf "Vorname Nachname" bringen.
+-- Frueher wurde der eigene Nachname ("Qt") als Realm an fremde Namen gehaengt.
+local function Rekey(t)
+    if type(t) ~= "table" then return t end
+    local out = {}
+    for k, v in pairs(t) do
+        local nk = type(k) == "string" and ns.NormFull(k) or k
+        local ex = out[nk]
+        if ex == nil then
+            out[nk] = v
+        elseif type(ex) == "table" and type(v) == "table" then
+            local a = (v.t or v.seen or v.last or 0) > (ex.t or ex.seen or ex.last or 0) and v or ex
+            local b = a == v and ex or v
+            for kk, vv in pairs(b) do if a[kk] == nil then a[kk] = vv end end
+            out[nk] = a
+        end
+    end
+    return out
+end
+
+function ns.MigrateNames()
+    local db = ns.db
+    if (db.nameVersion or 0) >= 3 then return end
+    db.unguilded = Rekey(db.unguilded)
+    db.country = Rekey(db.country)
+    local d = db.loot
+    if d then
+        d.players = Rekey(d.players)
+        d.marked = Rekey(d.marked)
+        for _, h in ipairs(d.history or {}) do if h.player then h.player = ns.NormFull(h.player) end end
+        for _, r in pairs(d.runs or {}) do
+            if type(r) == "table" then
+                r.members = Rekey(r.members)
+                if r.leader then r.leader = ns.NormFull(r.leader) end
+            end
+        end
+    end
+    local lp = db.settings.layerPartners
+    if type(lp) == "table" then
+        local seen, out = {}, {}
+        for _, f in ipairs(lp) do
+            local nf = ns.NormFull(f)
+            if not seen[nf] then seen[nf] = true; out[#out + 1] = nf end
+        end
+        db.settings.layerPartners = out
+    end
+    for _, l in ipairs(db.chatlog or {}) do if l.from then l.from = ns.NormFull(l.from) end end
+    for _, g in pairs(db.guilds) do
+        for _, m in ipairs((g.recruit and g.recruit.msgs) or {}) do if m.from then m.from = ns.NormFull(m.from) end end
+    end
+    db.nameVersion = 3
+end
+
 function ns.MigrateKeys()
     local db = ns.db
     if db.keyVersion == 2 then return end
@@ -1085,8 +1152,9 @@ ev:SetScript("OnEvent", function(_, event, ...)
         if ... == ADDON then ns.InitDB() end
     elseif event == "PLAYER_LOGIN" then
         ns.MyRealm()
-        local pn = UnitName("player")
-        ns.playerFull = ns.FullName(pn)
+        local pn, ps = UnitFullName("player")      -- Forever: ps = eigener Nachname
+        if not pn then pn, ps = UnitName("player") end
+        ns.playerFull = ns.FullName(pn, ps)
         ns.BuildScanSteps()
         ns.BuildRaceMap()
         ns.BuildRealmAliases()
@@ -1096,6 +1164,7 @@ ev:SetScript("OnEvent", function(_, event, ...)
         end
         ns.MigrateKeys()
         ns.DedupePlayers()
+        pcall(ns.MigrateNames)
         ns.RecomputeFactions()
         pcall(ns.Housekeep)
         SafeRegister("UPDATE_MOUSEOVER_UNIT")

@@ -67,8 +67,7 @@ end
 function CF.CountryOf(full)
     if not full then return nil end
     if not CF.me then
-        local n = UnitName and UnitName("player")
-        CF.me = n and ns.NormFull(n)
+        CF.me = ns.playerFull
     end
     if CF.me and full == CF.me then return CF.My(), "selbst" end
     local e = ns.db.country and ns.db.country[full]
