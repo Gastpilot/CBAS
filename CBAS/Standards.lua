@@ -3,7 +3,7 @@ local ADDON, ns = ...
 local STD = {}
 ns.Standards = STD
 
-local ICON = "Interface\\Icons\\INV_Misc_Spyglass_03"
+local ICON = "Interface\\AddOns\\CBAS\\Media\\Unicorn"
 
 local function Tooltip(owner, anchor)
     GameTooltip:SetOwner(owner, anchor or "ANCHOR_LEFT")
@@ -16,17 +16,74 @@ local function Tooltip(owner, anchor)
     end
     GameTooltip:AddLine(" ")
     GameTooltip:AddDoubleLine("Linksklick", "Fenster öffnen/schließen", 1, 0.82, 0, 1, 1, 1)
-    GameTooltip:AddDoubleLine("Rechtsklick", "Einstellungen", 1, 0.82, 0, 1, 1, 1)
+    GameTooltip:AddDoubleLine("Rechtsklick", "Optionen-Menü", 1, 0.82, 0, 1, 1, 1)
     GameTooltip:AddDoubleLine("Umschalt+Klick", "Flipper", 1, 0.82, 0, 1, 1, 1)
     if owner == STD.button then GameTooltip:AddDoubleLine("Ziehen", "Knopf verschieben", 1, 0.82, 0, 1, 1, 1) end
     GameTooltip:Show()
 end
 
-local function OnClick(button)
+local function Toggle(key, default)
+    local st = ns.db.settings
+    local cur = st[key]
+    if cur == nil then cur = default end
+    st[key] = not cur
+    if key == "flagEN" and ns.ChatFlags and ns.ChatFlags.ClearCache then ns.ChatFlags.ClearCache() end
+    if ns.ChatFlags and ns.ChatFlags.UpdateSettings then pcall(ns.ChatFlags.UpdateSettings) end
+end
+
+local function IsOn(key, default)
+    local v = ns.db.settings[key]
+    if v == nil then return default end
+    return v and true or false
+end
+
+-- Rechtsklick-Menue (Blizzard MenuUtil, ab 11.0)
+function STD.ShowMenu(owner)
+    local S = ns.Suite
+    if not (MenuUtil and MenuUtil.CreateContextMenu) then
+        if S then S:Toggle("settings") end
+        return
+    end
+    MenuUtil.CreateContextMenu(owner, function(_, root)
+        root:CreateTitle("CBAS " .. (ns.VERSION or ""))
+        root:CreateButton("GScout", function() S:Toggle("gscout") end)
+        root:CreateButton("Geierwacht", function() S:Toggle("geier") end)
+        root:CreateButton("Can I have it", function() S:Toggle("cihi") end)
+        root:CreateButton("Flipper", function() S:Toggle("flipper") end)
+        root:CreateDivider()
+        root:CreateTitle("Optionen")
+        root:CreateCheckbox("Länderflaggen im Chat", function() return IsOn("chatFlags", true) end,
+            function() Toggle("chatFlags", true) end)
+        root:CreateCheckbox("Englisch mit EN kennzeichnen", function() return IsOn("flagEN", true) end,
+            function() Toggle("flagEN", true) end)
+        root:CreateCheckbox("Infos in der Gruppensuche", function() return IsOn("lfgInfo", true) end,
+            function() Toggle("lfgInfo", true) end)
+        root:CreateCheckbox("Layerwechsel im Chat melden", function() return IsOn("layerChat", false) end,
+            function() Toggle("layerChat", false) end)
+        local cihi = ns.db.settings.cihi
+        if cihi then
+            root:CreateCheckbox("Can-I-have-it-Popup", function() return cihi.popup ~= false end,
+                function() cihi.popup = (cihi.popup == false) end)
+        end
+        root:CreateDivider()
+        root:CreateButton("Alle Einstellungen (Zahnrad)", function() S:Toggle("settings") end)
+        local newer = ns.Version and ns.Version.Latest()
+        if newer then
+            root:CreateButton("|cff40ff40Update " .. newer .. " - Link anzeigen|r", function() S:Toggle("settings") end)
+        end
+        root:CreateButton("Minimap-Knopf ausblenden", function()
+            STD.SetMinimap(false)
+            ns.Print("Minimap-Knopf ausgeblendet. Zurück mit /crap minimap.")
+        end)
+    end)
+end
+
+local function OnClick(button, owner)
     local S = ns.Suite
     if not S then return end
     if IsShiftKeyDown() then S:Toggle("flipper")
-    elseif button == "RightButton" then S:Toggle("settings")
+    elseif button == "RightButton" then
+        if owner then STD.ShowMenu(owner) else S:Toggle("settings") end
     else S:Toggle() end
 end
 
@@ -56,29 +113,28 @@ function STD.CreateMinimapButton()
     b:SetFrameLevel(8)
     b:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     b:RegisterForDrag("LeftButton")
-    b:SetHighlightTexture("Interface\\Minimap\\UI-Minimap-ZoomButton-Highlight")
-    local bg = b:CreateTexture(nil, "BACKGROUND")
-    bg:SetSize(20, 20)
-    bg:SetTexture("Interface\\Minimap\\UI-Minimap-Background")
-    bg:SetPoint("TOPLEFT", 7, -5)
+    -- Einhorn: pinker Kreis mit weissem Einhorn, ohne klassischen Rand
     local icon = b:CreateTexture(nil, "ARTWORK")
-    icon:SetSize(17, 17)
+    icon:SetSize(26, 26)
     icon:SetTexture(ICON)
-    icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
-    icon:SetPoint("TOPLEFT", 7, -6)
+    icon:SetPoint("CENTER")
     b.icon = icon
-    local border = b:CreateTexture(nil, "OVERLAY")
-    border:SetSize(53, 53)
-    border:SetTexture("Interface\\Minimap\\MiniMap-TrackingBorder")
-    border:SetPoint("TOPLEFT")
+    local hl = b:CreateTexture(nil, "HIGHLIGHT")
+    hl:SetSize(26, 26)
+    hl:SetTexture(ICON)
+    hl:SetBlendMode("ADD")
+    hl:SetAlpha(0.35)
+    hl:SetPoint("CENTER")
+    b:SetScript("OnMouseDown", function() icon:SetPoint("CENTER", 1, -1) end)
+    b:SetScript("OnMouseUp", function() icon:SetPoint("CENTER") end)
     -- gruener Punkt bei neuer Version
     local dot = b:CreateTexture(nil, "OVERLAY", nil, 7)
     dot:SetSize(7, 7)
     dot:SetColorTexture(0.2, 1, 0.2, 1)
-    dot:SetPoint("TOPRIGHT", -5, -5)
+    dot:SetPoint("TOPRIGHT", -3, -3)
     dot:Hide()
     b.dot = dot
-    b:SetScript("OnClick", function(_, button) OnClick(button) end)
+    b:SetScript("OnClick", function(self, button) OnClick(button, self) end)
     b:SetScript("OnEnter", function(self) Tooltip(self, "ANCHOR_LEFT") end)
     b:SetScript("OnLeave", GameTooltip_Hide)
     b:SetScript("OnDragStart", function(self)

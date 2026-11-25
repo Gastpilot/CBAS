@@ -5,10 +5,10 @@
 ## X-Website: https://github.com/Gastpilot/CBAS
 ## Category: Craphunt
 ## Author: Craphunt
-## Version: 2.23.0
+## Version: 2.24.0
 ## OptionalDeps: Auctionator, TradeSkillMaster
 ## SavedVariables: CBASDB, GildenScoutDB
-## IconTexture: Interface\Icons\INV_Misc_Spyglass_03
+## IconTexture: Interface\AddOns\CBAS\Media\Unicorn
 ## AddonCompartmentFunc: CBAS_OnCompartmentClick
 ## AddonCompartmentFuncOnEnter: CBAS_OnCompartmentEnter
 ## AddonCompartmentFuncOnLeave: CBAS_OnCompartmentLeave

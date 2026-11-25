@@ -1,4 +1,4 @@
-Craphunts Blacklisted Addon Suite (CBAS) 2.23.0 – Addon-Suite für WoW: Forever
+Craphunts Blacklisted Addon Suite (CBAS) 2.24.0 – Addon-Suite für WoW: Forever
 =====================================================
 
 AUFBAU DER SUITE
@@ -223,8 +223,13 @@ GRUPPENSUCHE (Blizzard und LFGForever)
   Abschalten: Zahnrad > Chat & Anzeige > "CBAS-Infos in der Gruppensuche".
 
 MINIMAP-KNOPF & STANDARDS
-  Minimap-Knopf: Linksklick = Fenster, Rechtsklick = Einstellungen,
-  Umschalt+Klick = Flipper, ziehen = verschieben. Grüner Punkt = neue Version.
+  Minimap-Knopf: weißes Einhorn auf pinkem Kreis, ohne Rand.
+  Linksklick = Fenster, Umschalt+Klick = Flipper, ziehen = verschieben,
+  grüner Punkt = neue Version.
+  Rechtsklick = Optionen-Menü: GScout, Geierwacht, Can I have it, Flipper
+  direkt öffnen; Länderflaggen, EN-Kennzeichnung, Gruppensuche-Infos,
+  Layer-Meldungen und Can-I-have-it-Popup an/aus; alle Einstellungen;
+  Knopf ausblenden. Rechtsklick im Addon-Fach öffnet dasselbe Menü.
   An/aus: Zahnrad > Chat & Anzeige oder /crap minimap.
   Außerdem: Eintrag unter Optionen > AddOns > CBAS, Addon-Fach an der Minimap
   mit Tooltip, ESC schließt alle CBAS-Fenster, Tastenbelegungen unter

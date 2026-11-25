@@ -254,6 +254,7 @@ end
 ---------------------------------------------------------------------------
 local cache, cacheT = {}, 0
 function CF.Forget(full) cache[full] = nil end
+function CF.ClearCache() wipe(cache) end
 
 local function FlagFor(name)
     local now = GetTime()

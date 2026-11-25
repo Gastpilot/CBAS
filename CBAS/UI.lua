@@ -1528,7 +1528,11 @@ SlashCmdList["CBAS"] = function(msg)
     end
 end
 
-function CBAS_OnCompartmentClick()
+function CBAS_OnCompartmentClick(_, buttonName, menuFrame)
+    if buttonName == "RightButton" and ns.Standards and ns.Standards.ShowMenu then
+        ns.Standards.ShowMenu(menuFrame or UIParent)
+        return
+    end
     UI:Toggle()
 end
 
