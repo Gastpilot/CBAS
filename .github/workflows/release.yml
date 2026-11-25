@@ -1,37 +1,41 @@
-# Baut bei jeder neuen Version (Tag v* oder veroeffentlichtes Release) eine fertige CBAS.zip
-# und haengt sie ans Release.
+# Baut zu jedem veröffentlichten Release eine fertige CBAS.zip und hängt sie an.
 # In der Zip liegt direkt der Ordner "CBAS" - entpacken nach Interface\AddOns, fertig.
+# Von Hand nachholen: Actions > Release > "Run workflow" mit dem Tag (z.B. v2.19.2).
 name: Release
 
 on:
-  push:
-    tags: ["v*"]
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag, z.B. v2.19.2"
+        required: true
 
 permissions:
   contents: write
+
+concurrency:
+  group: release-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
 
 jobs:
   release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
       - name: Zip bauen
         run: |
-          TAG="${{ github.event.release.tag_name || github.ref_name }}"
+          TAG="${{ github.event.release.tag_name || inputs.tag }}"
           VERSION="${TAG#v}"
           zip -r "CBAS.zip" CBAS -x "*.DS_Store"
           cp CBAS.zip "CBAS-${VERSION}.zip"
-      - name: Release anlegen / Zip anhaengen
+      - name: Zip an das Release hängen (Beschreibung bleibt unverändert)
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.release.tag_name || github.ref_name }}
-          name: CBAS ${{ github.event.release.tag_name || github.ref_name }}
-          body: |
-            **Download: `CBAS.zip`** (unten bei Assets) - nicht "Source code"!
-            Entpacken nach `World of Warcraft\_forever_\Interface\AddOns\`, dann WoW neu starten.
-            Danach muss es den Ordner `Interface\AddOns\CBAS` geben (ohne "-main").
+          tag_name: ${{ github.event.release.tag_name || inputs.tag }}
           files: |
             CBAS.zip
             CBAS-*.zip
