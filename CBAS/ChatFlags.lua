@@ -214,7 +214,7 @@ end
 ---------------------------------------------------------------------------
 function CF.BuildSettings(p)
     local box = CreateFrame("Frame", nil, p, "BackdropTemplate")
-    box:SetSize(330, 92)
+    box:SetSize(330, 116)
     if p.versionBox then box:SetPoint("TOPRIGHT", p.versionBox, "BOTTOMRIGHT", 0, -8) else box:SetPoint("TOPRIGHT", -22, -164) end
     if box.SetBackdrop then
         box:SetBackdrop({ bgFile = "Interface\\ChatFrame\\ChatFrameBackground", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -232,8 +232,16 @@ function CF.BuildSettings(p)
     cbt:SetText("Länderflaggen vor Spielernamen")
     cb:SetScript("OnClick", function(c) ns.db.settings.chatFlags = c:GetChecked() and true or false end)
     box.cb = cb
+    local lc = CreateFrame("CheckButton", nil, box, "UICheckButtonTemplate")
+    lc:SetSize(24, 24)
+    lc:SetPoint("TOPLEFT", 8, -46)
+    local lct = lc:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    lct:SetPoint("LEFT", lc, "RIGHT", 2, 1)
+    lct:SetText("Layerwechsel im Chat melden")
+    lc:SetScript("OnClick", function(c2) ns.db.settings.layerChat = c2:GetChecked() and true or false end)
+    box.lc = lc
     local ml = box:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    ml:SetPoint("TOPLEFT", 12, -56)
+    ml:SetPoint("TOPLEFT", 12, -80)
     ml:SetText("Mein Land:")
     local prev = CreateFrame("Button", nil, box, "UIPanelButtonTemplate")
     prev:SetSize(22, 20)
@@ -271,6 +279,7 @@ function CF.UpdateSettings()
     local box = CF.box
     if not box then return end
     box.cb:SetChecked(Enabled())
+    box.lc:SetChecked(ns.db.settings.layerChat and true or false)
     local c = CF.My()
     box.cur:SetText(c and (CF.Icon(c, 14) .. " " .. (CF.NAMES[c] or c)) or "|cff888888nicht gesetzt|r")
 end

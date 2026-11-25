@@ -66,7 +66,8 @@ function L:Seen(unit)
     if not cur or cur.key ~= key or cur.zone ~= zone then
         local old = cur
         self.cur = { key = key, zone = zone, server = server, zid = zoneUID, t = time() }
-        if old and old.zone == zone and old.key ~= key then
+        -- Chat-Meldung nur, wenn eingeschaltet (Zahnrad > Chat); sonst steht der Layer nur oben rechts
+        if old and old.zone == zone and old.key ~= key and ns.db.settings.layerChat then
             ns.Print(string.format("Layer gewechselt: %s -> %s (%s)", L.Label(old), L.Label(self.cur), zone))
         end
         self:SendAll(true)
@@ -175,7 +176,7 @@ function L:OnMessage(prefix, text, channel, sender)
     end
     -- antworten, damit beide Seiten Bescheid wissen
     if isNew or f[1] == "Q" then SendTo(sender, self:Payload()) end
-    if isNew then ns.Print("Layer-Partner " .. ns.SplitName(sender) .. " meldet sich.") end
+    if isNew and ns.db.settings.layerChat then ns.Print("Layer-Partner " .. ns.SplitName(sender) .. " meldet sich.") end
     self:Changed()
 end
 

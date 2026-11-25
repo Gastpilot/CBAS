@@ -1,4 +1,4 @@
-Craphunts Blacklisted Addon Suite (CBAS) 2.19.0 – Addon-Suite für WoW: Forever
+Craphunts Blacklisted Addon Suite (CBAS) 2.19.1 – Addon-Suite für WoW: Forever
 =====================================================
 
 AUFBAU DER SUITE
@@ -205,6 +205,8 @@ LÄNDERFLAGGEN IM CHAT
   Unklar = keine Flagge. Deutsch schreibende Österreicher/Schweizer bekommen
   erst nach eigener Angabe oder mit CBAS die richtige Flagge.
   Zahnrad > Chat: an/aus und "Mein Land" (Standard: Sprache deines WoW-Clients).
+  Ohne CBAS beim anderen gibt es nur die Schätzung aus Chat und Gilde: WoW lässt
+  Addons nur mit Addons reden, den Client eines anderen kann man nicht abfragen.
   /crap land AT  ·  /crap land an|aus  ·  /crap land (alle Flaggen zeigen)
 
 VERSION & UPDATES
@@ -324,7 +326,8 @@ LAYER & WELT (damit ihr nicht alle dasselbe auslest)
   "Auslesen auf Layer #2".
 - Erkannt wird der Layer an den IDs der NPCs: einen NPC anvisieren, mit der Maus
   berühren oder Namensplaketten sehen. Nummern gelten je Zone (#1 = kleinste ID);
-  "#2/3" = Layer 2 von 3 bekannten. Wechselst du den Layer, kommt eine Meldung.
+  "#2/3" = Layer 2 von 3 bekannten. Ein Layerwechsel steht nur oben rechts -
+  Chat-Meldung optional: Zahnrad > Chat > "Layerwechsel im Chat melden".
 - Im Gildenprofil: "Per /who gesehen auf Layer #1 Orgrimmar ...".
 - LAYER-PARTNER: in den Einstellungen Namen eintragen (Komma, Enter) oder
   /crap partner add <Name>. Partner müssen in der Freundesliste stehen und CBAS
