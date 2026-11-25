@@ -1,0 +1,15 @@
+exec(open('/tmp/test21.py').read().split('print("=== AH-Kaufhilfe ===")')[0].replace('print(','(lambda *a: None)('))
+la.execute('''local db=AUCTIONATOR_PRICE_DATABASE["Treoninka Horde"]; local t=CBAS.Flip.Today()
+db["4338"]={m=69000,h={[t-7]=56900,[t-6]=55000,[t-4]=71000,[t-3]=70000,[t-2]=67500}}
+local h={} for i=1,14 do local d=t-15+i; h[d]= i<=7 and (20000-i*1000) or (13000+(i-7)*1200) end
+db["8838"]={m=21000,h=h}''')
+print("Sprung:", run('local st=CBAS.Flip.Stats(CBAS.Flip.EntryFor(4338)); assert(st.brk and st.brk.kind=="step"); assert(st.forecast < 70000)'))
+print("Cache gleich:", la.eval('CBAS.Flip.Stats(CBAS.Flip.EntryFor(4338))==CBAS.Flip.Stats(CBAS.Flip.EntryFor(4338))'))
+print("nach AH neu:", run('local a=CBAS.Flip.Stats(CBAS.Flip.EntryFor(4338)); CBAS.Flip.Invalidate(); assert(a~=CBAS.Flip.Stats(CBAS.Flip.EntryFor(4338)))'))
+print("Chart Sprung:", run('CBAS.Flip.Chart.Show(4338)'), [l for l in la.eval('CBASChart.info:GetText()').split("\n") if "Sprung" in l][0][:60])
+print("Chart Wende:", run('CBAS.Flip.Chart.Show(8838)'), [l for l in la.eval('CBASChart.info:GetText()').split("\n") if "Trend" in l][0][:60])
+print("Gewinn:", run('CBAS.Flip.Chart.ShowProfit()'))
+print("Wochentag:", la.eval('CBAS.Flip.Weekday(2519)'), "(2026-11-24 = Di = 3)")
+print("Prices-Cache:", la.eval('CBAS.Flip.Prices(7076)==CBAS.Flip.Prices(7076)'))
+print("mem:", run('CBAS.MemoryReport()'))
+print("Haushalt:", run('return CBAS.Housekeep()'))
