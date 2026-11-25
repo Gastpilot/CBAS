@@ -1407,6 +1407,11 @@ SlashCmdList["CBAS"] = function(msg)
         else
             ns.Suite:Toggle("flipper")
         end
+    elseif cmd == "minimap" or cmd == "mm" then
+        ns.Standards.SetMinimap(ns.db.settings.minimapHide and true or false)
+        ns.Print("Minimap-Knopf: " .. (ns.db.settings.minimapHide and "aus" or "an"))
+    elseif cmd == "cihi" or cmd == "canihaveit" or cmd == "fragen" then
+        ns.Suite:Toggle("cihi")
     elseif cmd == "land" or cmd == "flagge" or cmd == "country" then
         ns.ChatFlags.Slash(rest)
     elseif cmd == "version" or cmd == "update" then
@@ -1495,6 +1500,7 @@ SlashCmdList["CBAS"] = function(msg)
         print("  /crap gscout - Reiter GScout öffnen")
         print("  /crap gildenlos - Reiter Gildenlos (gildenlose Spieler, Gildensucher) öffnen")
         print("  /crap geier - Reiter Geierwacht (Loot-Kontrolle) öffnen")
+        print("  /crap cihi - Can I have it (Offspec fair bekommen) · /crap minimap - Minimap-Knopf an/aus")
         print("  /crap land DE - dein Land für die Chat-Flaggen (an/aus: /crap land an|aus)")
         print("  /crap version - Version + Download-Link · /crap mem - Speicherverbrauch · /crap kurve - Leistungskurve")
         print("  /crap flip - Reiter Flipper · /crap flip add [Gegenstand] · /crap flip find (analysieren) · budget <Gold> · next (nächster Schritt, für Makros) · post · event TT.MM.JJJJ Name · reset mi · snipe")

@@ -53,6 +53,7 @@ function V.UpdateBadge()
         S.gearBadge = b
     end
     S.gearBadge:SetShown(V.Latest() and true or false)
+    if ns.Standards then pcall(ns.Standards.UpdateMinimap) end
 end
 
 function V.Announce(force)

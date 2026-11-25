@@ -202,10 +202,11 @@ function Suite:Create()
     -- (zum Verschieben) ab und liegen sonst ueber den Knoepfen
     -- Unteransichten (z.B. GScout: Gilden | Gildenlose) als kleine Knoepfe hinter den Reitern
     self.subBtns = {}
-    local sx = x + 16
+    local subX = {}
     for _, mod in ipairs(self.modules) do
         if mod.parent and self.byId[mod.parent] then
             local list = self.subBtns[mod.parent]
+            local sx = subX[mod.parent] or (x + 16)   -- jede Gruppe beginnt direkt hinter den Reitern
             if not list then
                 list = {}
                 self.subBtns[mod.parent] = list
@@ -223,6 +224,7 @@ function Suite:Create()
             b.id = mod.id
             list[#list + 1] = b
             sx = sx + 92
+            subX[mod.parent] = sx
         end
     end
     -- Einstellungen: Zahnrad in der Titelleiste

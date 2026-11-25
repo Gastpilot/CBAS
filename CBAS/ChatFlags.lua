@@ -213,7 +213,7 @@ end
 ---------------------------------------------------------------------------
 function CF.BuildSettings(p)
     local box = CreateFrame("Frame", nil, p, "BackdropTemplate")
-    box:SetSize(330, 116)
+    box:SetSize(330, 140)
     if p.versionBox then box:SetPoint("TOPRIGHT", p.versionBox, "BOTTOMRIGHT", 0, -8) else box:SetPoint("TOPRIGHT", -22, -164) end
     if box.SetBackdrop then
         box:SetBackdrop({ bgFile = "Interface\\ChatFrame\\ChatFrameBackground", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -222,7 +222,7 @@ function CF.BuildSettings(p)
     end
     local h = box:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     h:SetPoint("TOPLEFT", 10, -8)
-    h:SetText("Chat")
+    h:SetText("Chat & Anzeige")
     local cb = CreateFrame("CheckButton", nil, box, "UICheckButtonTemplate")
     cb:SetSize(24, 24)
     cb:SetPoint("TOPLEFT", 8, -24)
@@ -239,8 +239,16 @@ function CF.BuildSettings(p)
     lct:SetText("Layerwechsel im Chat melden")
     lc:SetScript("OnClick", function(c2) ns.db.settings.layerChat = c2:GetChecked() and true or false end)
     box.lc = lc
+    local mm = CreateFrame("CheckButton", nil, box, "UICheckButtonTemplate")
+    mm:SetSize(24, 24)
+    mm:SetPoint("TOPLEFT", 8, -68)
+    local mmt = mm:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    mmt:SetPoint("LEFT", mm, "RIGHT", 2, 1)
+    mmt:SetText("Minimap-Knopf anzeigen")
+    mm:SetScript("OnClick", function(c2) if ns.Standards then ns.Standards.SetMinimap(c2:GetChecked()) end end)
+    box.mm = mm
     local ml = box:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    ml:SetPoint("TOPLEFT", 12, -80)
+    ml:SetPoint("TOPLEFT", 12, -102)
     ml:SetText("Mein Land:")
     local prev = CreateFrame("Button", nil, box, "UIPanelButtonTemplate")
     prev:SetSize(22, 20)
@@ -279,6 +287,7 @@ function CF.UpdateSettings()
     if not box then return end
     box.cb:SetChecked(Enabled())
     box.lc:SetChecked(ns.db.settings.layerChat and true or false)
+    box.mm:SetChecked(not ns.db.settings.minimapHide)
     local c = CF.My()
     box.cur:SetText(c and (CF.Icon(c, 14) .. " " .. (CF.NAMES[c] or c)) or "|cff888888nicht gesetzt|r")
 end

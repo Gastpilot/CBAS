@@ -1,12 +1,17 @@
 ## Interface: 16001
 ## Title: |cff33ccffCraphunts Blacklisted Addon Suite|r
-## Notes: Gildendatenbank: sammelt automatisch alle Gilden, denen du begegnest, inkl. Rekrutierung, Lootsystem, Mitgliedern und Raidzeiten. /crap
+## Notes: Gilden-Datenbank (GScout), Loot-Kontrolle (Geierwacht), Offspec fair bekommen (Can I have it), AH-Flipper und Chat-Flaggen. /crap
+## Notes-deDE: Gilden-Datenbank (GScout), Loot-Kontrolle (Geierwacht), Offspec fair bekommen (Can I have it), AH-Flipper und Chat-Flaggen. /crap
+## X-Website: https://github.com/Gastpilot/CBAS
+## Category: Craphunt
 ## Author: Craphunt
-## Version: 2.19.2
+## Version: 2.20.0
 ## OptionalDeps: Auctionator, TradeSkillMaster
 ## SavedVariables: CBASDB, GildenScoutDB
 ## IconTexture: Interface\Icons\INV_Misc_Spyglass_03
 ## AddonCompartmentFunc: CBAS_OnCompartmentClick
+## AddonCompartmentFuncOnEnter: CBAS_OnCompartmentEnter
+## AddonCompartmentFuncOnLeave: CBAS_OnCompartmentLeave
 
 Core.lua
 Instances.lua
@@ -19,6 +24,8 @@ GuildChart.lua
 Unguilded.lua
 Geierwacht.lua
 GeierwachtUI.lua
+CanIHave.lua
+CanIHaveUI.lua
 Flipper.lua
 ClaudeTips.lua
 FlipChart.lua
@@ -31,3 +38,4 @@ Inspect.lua
 Layer.lua
 Version.lua
 ChatFlags.lua
+Standards.lua
