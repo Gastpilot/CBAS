@@ -304,7 +304,7 @@ end
 ---------------------------------------------------------------------------
 function CF.BuildSettings(p)
     local box = CreateFrame("Frame", nil, p, "BackdropTemplate")
-    box:SetSize(330, 164)
+    box:SetSize(330, 188)
     if p.versionBox then box:SetPoint("TOPRIGHT", p.versionBox, "BOTTOMRIGHT", 0, -8) else box:SetPoint("TOPRIGHT", -22, -164) end
     if box.SetBackdrop then
         box:SetBackdrop({ bgFile = "Interface\\ChatFrame\\ChatFrameBackground", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -346,8 +346,16 @@ function CF.BuildSettings(p)
     ent:SetText("Englisch mit |cff9fc5ffEN|r kennzeichnen")
     en:SetScript("OnClick", function(c2) ns.db.settings.flagEN = c2:GetChecked() and true or false; wipe(cache) end)
     box.en = en
+    local li = CreateFrame("CheckButton", nil, box, "UICheckButtonTemplate")
+    li:SetSize(24, 24)
+    li:SetPoint("TOPLEFT", 8, -112)
+    local lit = li:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    lit:SetPoint("LEFT", li, "RIGHT", 2, 1)
+    lit:SetText("CBAS-Infos in der Gruppensuche")
+    li:SetScript("OnClick", function(c2) ns.db.settings.lfgInfo = c2:GetChecked() and true or false end)
+    box.li = li
     local ml = box:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    ml:SetPoint("TOPLEFT", 12, -126)
+    ml:SetPoint("TOPLEFT", 12, -150)
     ml:SetText("Mein Land:")
     local prev = CreateFrame("Button", nil, box, "UIPanelButtonTemplate")
     prev:SetSize(22, 20)
@@ -388,6 +396,7 @@ function CF.UpdateSettings()
     box.lc:SetChecked(ns.db.settings.layerChat and true or false)
     box.mm:SetChecked(not ns.db.settings.minimapHide)
     box.en:SetChecked(ns.db.settings.flagEN ~= false)
+    box.li:SetChecked(ns.db.settings.lfgInfo ~= false)
     local c = CF.My()
     box.cur:SetText(c and (CF.Icon(c, 14) .. " " .. (CF.NAMES[c] or c)) or "|cff888888nicht gesetzt|r")
 end

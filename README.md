@@ -8,7 +8,8 @@ WoW-Forever-Addon (Midnight-Client, Interface 16001). Befehl im Spiel: `/crap`
 | **Geierwacht** | Passt der Bedarf-Wurf zu Klasse und Spec? Main-/Offspec, Runs |
 | **Can I have it** | Offspec-Teile fair bekommen: Rat bei jedem Drop (wer braucht es als Mainspec?) und höfliche, fertige Texte |
 | **Flipper** | AH- und Händler-Flips mit Auctionator/TSM: Autopilot-Taste, 2h-Modus, Lager & Einstellen, Sniper, Verlauf/Prognose, Claude-Tipps |
-| Chat | Länderflaggen vor Spielernamen: `[Gruppe] 🇩🇪 Name` |
+| Chat | Länderflaggen vor Spielernamen: `[Gruppe] 🇩🇪 Name`, Englisch als EN |
+| Gruppensuche | CBAS-Infos zu jedem Suchergebnis (Blizzard & LFGForever): Sprache, Gilde, Leistung, Geier-Warnungen |
 | Zahnrad | Einstellungen, Version & Download-Link · Minimap-Knopf |
 
 ## Download & Installation

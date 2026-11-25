@@ -1,4 +1,4 @@
-Craphunts Blacklisted Addon Suite (CBAS) 2.21.0 – Addon-Suite für WoW: Forever
+Craphunts Blacklisted Addon Suite (CBAS) 2.22.0 – Addon-Suite für WoW: Forever
 =====================================================
 
 AUFBAU DER SUITE
@@ -213,6 +213,16 @@ CAN I HAVE IT (Geierwacht > "Can I have it", /crap cihi)
   nach Gruppe (oder fest einstellen). Deine Main-/Offspec stellst du oben in der
   Ansicht ein (Standard: automatisch). Unten rechts: beliebigen Gegenstand per
   Shift-Klick prüfen ("dürfte ich danach fragen?").
+
+GRUPPENSUCHE (Blizzard und LFGForever)
+  Fährst du mit der Maus über ein Suchergebnis, erscheint unter dem normalen
+  Fenster ein CBAS-Fenster - in der Blizzard-Gruppensuche UND in LFGForever:
+  - oben: "nichts Auffälliges" / "Hinweis" / "Achtung"
+  - Sprachen der Gruppe (Flaggen bzw. EN mit Anzahl)
+  - je Spieler: Flagge, Name, <Gilde> mit Leistung und Lootsystem (GScout),
+    Blacklist-Gilde, von dir markiert (Geierwacht), x-mal Geier-Bedarf bzw.
+    fragwürdiger Bedarf, wie viele Runs ihr schon zusammen hattet.
+  Abschalten: Zahnrad > Chat & Anzeige > "CBAS-Infos in der Gruppensuche".
 
 MINIMAP-KNOPF & STANDARDS
   Minimap-Knopf: Linksklick = Fenster, Rechtsklick = Einstellungen,
