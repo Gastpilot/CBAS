@@ -23,6 +23,9 @@ local T = {
             "Kurze Frage: %s wäre super für meine %s-Offspec. Mainspec geht aber vor!",
         },
         whisper = "Hi! Falls du %s nicht brauchst: Ich könnte es gut für meine %s-Offspec gebrauchen. Handeln geht noch knapp 2 Std. Kein Stress, danke!",
+        reason = { "Bedarf auf %s für meine %s-Offspec - als Mainspec braucht es hier keiner.",
+                   "%s: Bedarf für %s-Offspec, Mainspec-Bedarf hat niemand." },
+        reasonMain = "Bedarf auf %s - Mainspec (%s).",
         thanks = { "Danke für %s, sehr nett!", "Vielen Dank für %s!" },
     },
     en = {
@@ -32,6 +35,9 @@ local T = {
             "Quick question: %s would be great for my %s offspec. MS goes first though!",
         },
         whisper = "Hi! If you don't need %s: it would be great for my %s offspec. It's tradeable for about 2h. No pressure, thanks!",
+        reason = { "Need on %s for my %s offspec - nobody here needs it for main spec.",
+                   "%s: need for %s offspec, no main spec need in the group." },
+        reasonMain = "Need on %s - main spec (%s).",
         thanks = { "Thanks a lot for %s!", "Thank you for %s, much appreciated!" },
     },
 }
@@ -91,64 +97,80 @@ local function GotThisRun()
     return n
 end
 
--- Kern: ein Gegenstand -> Einschaetzung
--- state: "main" | "ask" | "wait" | "hold" | "boe" | "no" | "pending"
+-- Kern: Darf ich Bedarf wuerfeln? Dieselben Regeln, mit denen die Geierwacht alle anderen
+-- bewertet - nur auf dich angewendet.
+-- state:
+--   "need"  Bedarf ok (Mainspec, oder Offspec und niemand braucht es als Mainspec)
+--   "risky" Bedarf vertretbar, aber nur mit Begruendung (z.B. Leder statt Platte, Werte passen)
+--   "wait"  jemand braucht es als MAINSPEC -> der hat Vorrang (kein OK)
+--   "boe"   BoE: Bedarf nur, wenn du es wirklich anlegst - sonst Gier
+--   "no"    passt nicht zu dir -> wuerde jeder als Geier sehen
+--   "pending" Daten laden noch
 function CI.Check(link)
     local class = CI.MyClass()
     local verdict, why, extra = GW.Evaluate(link, class, UnitLevel("player"))
     local r = { link = link, t = time() }
     if verdict == "pending" then r.state = "pending" return r end
-    if verdict == "info" then r.state = "no"; r.why = why return r end
-    if verdict ~= "ok" then
-        r.state, r.why = "no", "passt nicht zu dir (" .. (why or "?") .. ") - fragen würde nach Geier aussehen"
+    if verdict == "info" then r.state = "info"; r.why = why return r end
+    r.verdict, r.vwhy = verdict, why
+    if verdict == "geier" then
+        r.state, r.why = "no", "Passt nicht zu dir (" .. (why or "?") .. "). Bedarf würde jeder als Geier sehen - Gier oder Passen."
         return r
     end
     local roles = (extra and extra.roles) or {}
     local main, offs = CI.MyRoles()
     if roles[main] then
-        r.state, r.role, r.why = "main", main, "Mainspec-Teil für dich - ganz normal Bedarf würfeln."
+        r.role, r.isMain = main, true
+    else
+        for _, o in ipairs(offs) do
+            if roles[o] then r.role = o break end
+        end
+    end
+    if not r.role and next(roles) then
+        r.state, r.why = "no", "Werte passen zu keiner deiner Specs (" .. GW.RoleList(roles) .. "). Bedarf würde nach Geier aussehen."
         return r
     end
-    for _, o in ipairs(offs) do
-        if roles[o] then r.role = o break end
-    end
-    if not r.role then
-        r.state, r.why = "no", "Werte passen zu keiner deiner Specs (" .. (GW.RoleList(roles) ~= "" and GW.RoleList(roles) or "?") .. ")"
-        return r
-    end
+    r.role = r.role or main          -- z.B. Ringe/Umhänge ohne klare Rolle
     -- wer koennte es als Mainspec brauchen?
     r.ms, r.maybe = {}, {}
-    for _, unit in ipairs(GW.GroupUnits()) do
-        if unit ~= "player" and UnitExists(unit) then
-            local n, rl = UnitName(unit)
-            n, rl = S(n), S(rl)
-            local _, cls = UnitClass(unit)
-            cls = S(cls)
-            if n and cls then
-                local full = ns.FullName(n, rl)
-                local v = GW.Evaluate(link, cls, S(UnitLevel(unit)))
-                if v == "ok" then
-                    local fit = GW.RoleFit(roles, full, cls)
-                    if fit == "main" then r.ms[#r.ms + 1] = n
-                    elseif fit == "possible" then r.maybe[#r.maybe + 1] = n end
+    if not r.isMain then
+        for _, unit in ipairs(GW.GroupUnits()) do
+            if unit ~= "player" and UnitExists(unit) then
+                local n, rl = UnitName(unit)
+                n, rl = S(n), S(rl)
+                local _, cls = UnitClass(unit)
+                cls = S(cls)
+                if n and cls then
+                    local full = ns.FullName(n, rl)
+                    local v = GW.Evaluate(link, cls, S(UnitLevel(unit)))
+                    if v == "ok" then
+                        local fit = GW.RoleFit(roles, full, cls)
+                        if fit == "main" then r.ms[#r.ms + 1] = n
+                        elseif fit == "possible" then r.maybe[#r.maybe + 1] = n end
+                    end
                 end
             end
         end
     end
     r.got = GotThisRun()
-    local roleTxt = GW.ROLE_NAMES[r.role] or r.role
-    if extra and extra.boe then
-        r.state, r.why = "boe", "Offspec (" .. roleTxt .. "), aber BoE und damit Gold wert - fragen wirkt gierig. Normal würfeln."
+    local roleTxt = GW.ROLE_NAMES[r.role] or r.role or "?"
+    local note = (verdict == "frag") and (" Achtung: " .. (why or "") .. ".") or ""
+    if extra and extra.boe and not r.isMain then
+        r.state, r.why = "boe", "BoE (Gold wert). Bedarf nur, wenn du es wirklich anlegst - sonst wirkt es wie Geld-Geier. Normal: Gier."
+    elseif r.isMain then
+        r.state = verdict == "frag" and "risky" or "need"
+        r.why = "Mainspec (" .. roleTxt .. ") - Bedarf ganz normal." .. note
     elseif #r.ms > 0 then
-        r.state, r.why = "wait", "Offspec (" .. roleTxt .. "). Mainspec-Bedarf möglich bei: " .. table.concat(r.ms, ", ") ..
-            ". Die haben Vorrang - erst würfeln lassen, nur fragen, wenn keiner Bedarf hat."
-    elseif r.got >= 1 then
-        r.state, r.why = "hold", "Offspec (" .. roleTxt .. "), niemand braucht es als Mainspec. Du hast in diesem Run aber schon " ..
-            r.got .. " Teil(e) - fair wäre, anderen den Vortritt zu lassen."
+        r.state, r.why = "wait", "Offspec (" .. roleTxt .. "), aber " .. table.concat(r.ms, ", ") ..
+            " braucht es als Mainspec - die haben Vorrang. Kein Bedarf; höchstens nachfragen, falls sie passen."
     else
-        r.state, r.why = "ask", "Offspec (" .. roleTxt .. ") und niemand braucht es als Mainspec" ..
-            (#r.maybe > 0 and (" (vielleicht Offspec bei: " .. table.concat(r.maybe, ", ") .. ")") or "") ..
-            ". Du kannst fair fragen."
+        r.state = verdict == "frag" and "risky" or "need"
+        r.why = "Offspec (" .. roleTxt .. "), niemand in der Gruppe braucht es als Mainspec" ..
+            (#r.maybe > 0 and (" (Offspec möglich bei: " .. table.concat(r.maybe, ", ") .. ")") or "") ..
+            " - Bedarf ist vertretbar." .. note
+    end
+    if r.got > 0 and (r.state == "need" or r.state == "risky") and not r.isMain then
+        r.why = r.why .. " Du hast in diesem Run schon " .. r.got .. " Teil(e)."
     end
     return r
 end
@@ -176,6 +198,16 @@ function CI.Ask(e)
     local txt = Pick(T[lang].ask, e.n + (e.t or 0)):format(e.link, RoleWord(e.role, lang))
     if ChatFrame_OpenChat then ChatFrame_OpenChat(GroupSlash() .. txt) end
     e.asked = time()
+    CI.Changed()
+end
+
+-- ehrliche Begruendung in die Gruppe (wenn jemand fragt "wieso Bedarf?")
+function CI.Reason(e)
+    local lang = CI.Lang()
+    local tpl = e.isMain and T[lang].reasonMain or Pick(T[lang].reason, e.t or 0)
+    local txt = tpl:format(e.link, RoleWord(e.role, lang))
+    if ChatFrame_OpenChat then ChatFrame_OpenChat(GroupSlash() .. txt) end
+    e.reasoned = time()
     CI.Changed()
 end
 
@@ -212,8 +244,8 @@ end
 -- Liste der Gelegenheiten (fuer die Ansicht) + Popup
 ---------------------------------------------------------------------------
 local STATE_TXT = {
-    ask = "|cff40ff40fair fragen|r", wait = "|cffffd100erst MS würfeln lassen|r", hold = "|cffffd100lieber Vortritt|r",
-    boe = "|cffff8000BoE - würfeln|r", main = "|cff66ccffMainspec|r", no = "|cff888888nicht für dich|r",
+    need = "|cff40ff40BEDARF OK|r", risky = "|cffff8000Bedarf mit Begründung|r", wait = "|cffffd100MS hat Vorrang|r",
+    boe = "|cffffd100BoE: nur wenn du's trägst|r", no = "|cffff4040Geier - kein Bedarf|r",
 }
 CI.STATE_TXT = STATE_TXT
 
@@ -242,7 +274,7 @@ function CI.OnDrop(link, tries)
         if (tries or 0) < 5 then C_Timer.After(1, function() CI.OnDrop(link, (tries or 0) + 1) end) end
         return
     end
-    if r.state == "no" or r.state == "main" then return end   -- nur echte Offspec-Chancen merken
+    if r.state == "info" then return end   -- kein Ausruestungsgegenstand
     local e = Remember(r)
     local s = CI.db()
     if s.popup ~= false then CI.ShowPopup(e) end
@@ -264,7 +296,7 @@ function CI.OnLoot(kind, full, link)
     -- Gewinner braucht es evtl. nicht (keine Mainspec bei ihm) -> hoeflich anfluestern moeglich
     if not e then
         local r = CI.Check(link)
-        if r.state ~= "ask" and r.state ~= "hold" and r.state ~= "wait" then return end
+        if r.state ~= "need" and r.state ~= "risky" and r.state ~= "wait" then return end
         e = Remember(r)
     end
     if e.mine then return end
@@ -305,7 +337,7 @@ local function Popup()
     end
     local title = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     title:SetPoint("TOPLEFT", 10, -9)
-    title:SetText("|cff33ccffCan I have it?|r")
+    title:SetText("|cff33ccffCan I have it?|r |cff888888Darf ich Bedarf würfeln?|r")
     local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
     close:SetPoint("TOPRIGHT", 2, 2)
     local item = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
@@ -326,9 +358,11 @@ local function Popup()
         b:SetText(text)
         return b
     end
-    f.ask = B("Höflich fragen", 120)
+    f.ask = B("Begründung posten", 130)
     f.ask:SetPoint("BOTTOMLEFT", 8, 8)
-    f.ask:SetScript("OnClick", function() CI.Ask(f.e) end)
+    f.ask:SetScript("OnClick", function()
+        if f.e.state == "wait" or f.e.state == "boe" then CI.Ask(f.e) else CI.Reason(f.e) end
+    end)
     f.whisper = B("Gewinner fragen", 120)
     f.whisper:SetPoint("LEFT", f.ask, "RIGHT", 4, 0)
     f.whisper:SetScript("OnClick", function() CI.WhisperWinner(f.e) end)
@@ -361,7 +395,9 @@ function CI.ShowPopup(e)
     end
     if e.mine then L[#L + 1] = "|cff40ff40Du hast es bekommen!|r" end
     f.why:SetText(table.concat(L, "\n"))
-    f.ask:SetEnabled((e.state == "ask" or e.state == "hold") and not e.mine and not e.winner and true or false)
+    local isWait = e.state == "wait" or e.state == "boe"
+    f.ask:SetText(isWait and "Höflich fragen" or "Begründung posten")
+    f.ask:SetEnabled(e.state ~= "no" and not e.mine and not (isWait and e.winner) and true or false)
     f.whisper:SetEnabled(e.winner and e.canWhisper and not e.mine and true or false)
     f.thanks:SetEnabled(e.mine and true or false)
     f:ClearAllPoints()

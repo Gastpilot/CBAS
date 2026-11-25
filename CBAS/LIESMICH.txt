@@ -1,4 +1,4 @@
-Craphunts Blacklisted Addon Suite (CBAS) 2.22.0 – Addon-Suite für WoW: Forever
+Craphunts Blacklisted Addon Suite (CBAS) 2.23.0 – Addon-Suite für WoW: Forever
 =====================================================
 
 AUFBAU DER SUITE
@@ -194,25 +194,23 @@ LEICHTGEWICHTIG BLEIBEN
   mitlesen" aus - in vollen Städten der größte Dauerverbraucher.
 
 CAN I HAVE IT (Geierwacht > "Can I have it", /crap cihi)
-  Offspec-Teile fair bekommen - ohne wie ein Geier zu wirken.
-  Bei jedem Drop prüft CBAS für dich:
-  - passt es zu deiner Klasse (Rüstung, Waffe, Werte)? Wenn nicht: Finger weg.
-  - Main- oder Offspec? Mainspec = ganz normal Bedarf würfeln.
-  - Wer in der Gruppe könnte es als MAINSPEC brauchen? Die haben Vorrang.
-  - Hast du in diesem Run schon etwas bekommen? Dann lieber Vortritt lassen.
-  - BoE (Gold wert)? Dann fragen wirkt gierig - normal würfeln.
-  Rat:  fair fragen | erst MS würfeln lassen | lieber Vortritt | BoE - würfeln
-  Knöpfe (Popup oben und in der Ansicht):
-  - "Höflich fragen": fertiger Text in die Gruppe, z.B. "Darf ich [Item] für
-    meine Heil-Offspec haben? Wer es als Mainspec braucht, hat Vorrang."
-  - "Gewinner fragen": hat es jemand gewonnen, der es nicht als Mainspec
-    braucht, gibt es eine freundliche Flüsternachricht (Handeln geht 2 Std.).
-  - "Danke sagen", wenn du es bekommen hast.
-  CBAS schreibt NIE selbst: der Text landet in deiner Chat-Eingabe, du kannst
-  ihn ändern und schickst ihn mit Enter. Deutsch oder Englisch automatisch je
-  nach Gruppe (oder fest einstellen). Deine Main-/Offspec stellst du oben in der
-  Ansicht ein (Standard: automatisch). Unten rechts: beliebigen Gegenstand per
-  Shift-Klick prüfen ("dürfte ich danach fragen?").
+  Das Gegenstück zur Geierwacht: die Geierwacht bewertet die anderen, "Can I
+  have it" wendet DIESELBEN Regeln auf dich an und sagt dir beim Würfelfenster,
+  ob dein Bedarf vertretbar ist - mit fertiger Begründung, falls jemand fragt.
+  BEDARF OK              passt zu deiner Klasse und Main- oder Offspec, und
+                         niemand in der Gruppe braucht es als Mainspec
+  Bedarf mit Begründung  vertretbar, aber auffällig (z.B. Leder statt Platte,
+                         Werte passen) - Begründung bereithalten
+  MS hat Vorrang         jemand braucht es als Mainspec -> kein OK (höchstens
+                         höflich fragen, falls er passt)
+  BoE: nur wenn du's trägst  Gold wert - sonst Gier
+  Geier - kein Bedarf    passt nicht zu dir, das sähe jeder als Geier
+  Knöpfe: "Begründung posten" (z.B. "Bedarf auf [Item] für meine DD-Offspec -
+  als Mainspec braucht es hier keiner."), "Höflich fragen", "Gewinner fragen",
+  "Danke sagen". CBAS würfelt und schreibt NIE selbst - der Text landet in
+  deiner Chat-Eingabe, du schickst ihn mit Enter. Deutsch/Englisch automatisch.
+  Main-/Offspec oben in der Ansicht einstellen (Standard: automatisch).
+  Unten rechts: beliebigen Gegenstand per Shift-Klick prüfen.
 
 GRUPPENSUCHE (Blizzard und LFGForever)
   Fährst du mit der Maus über ein Suchergebnis, erscheint unter dem normalen

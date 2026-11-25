@@ -10,7 +10,7 @@ local COLS = {
     { label = "Zeit", w = 44 },
     { label = "Gegenstand", w = 200, align = "LEFT" },
     { label = "Für", w = 70 },
-    { label = "Rat", w = 150, align = "LEFT" },
+    { label = "Bedarf?", w = 150, align = "LEFT" },
     { label = "MS-Bedarf bei", w = 150, align = "LEFT" },
     { label = "Status", w = 170, align = "LEFT" },
 }
@@ -62,13 +62,14 @@ function UI:Create(p)
     self.frame = p
     local h = p:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     h:SetPoint("TOPLEFT", 16, -34)
-    h:SetText("Can I have it? |cffccccccOffspec-Teile fair bekommen - ohne wie ein Geier zu wirken|r")
+    h:SetText("Can I have it? |cffccccccDarf ich Bedarf würfeln? - die Geierwacht-Regeln, auf dich angewendet|r")
     local info = p:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     info:SetPoint("TOPLEFT", 16, -52)
     info:SetPoint("TOPRIGHT", -16, -52)
     info:SetJustifyH("LEFT")
-    info:SetText("Bei jedem Drop prüft CBAS: passt es zu dir, ist es Main- oder Offspec, wer braucht es als |cffffd100Mainspec|r (die haben Vorrang), " ..
-        "hast du in diesem Run schon etwas, ist es BoE? Nur wenn es fair ist, gibt es einen höflichen fertigen Text - CBAS schreibt nie selbst, du drückst Enter.")
+    info:SetText("Bei jedem Würfelfenster prüft CBAS mit denselben Regeln wie die Geierwacht: passt es zu deiner Klasse und einer deiner Specs, " ..
+        "braucht es jemand als |cffffd100Mainspec|r (der hat Vorrang)? |cff40ff40BEDARF OK|r = vertretbar, mit fertiger Begründung, falls jemand fragt. " ..
+        "CBAS würfelt und schreibt nie selbst.")
 
     -- Einstellungen
     local s = CI.db()
@@ -153,9 +154,13 @@ function UI:Create(p)
     self.det = det
 
     -- Knoepfe
-    local ask = Btn(p, "Höflich fragen", 120)
+    local ask = Btn(p, "Begründung posten", 140)
     ask:SetPoint("BOTTOMLEFT", 14, 12)
-    ask:SetScript("OnClick", function() if UI.selected then CI.Ask(UI.selected) end end)
+    ask:SetScript("OnClick", function()
+        local e = UI.selected
+        if not e then return end
+        if e.state == "wait" or e.state == "boe" then CI.Ask(e) else CI.Reason(e) end
+    end)
     local wh = Btn(p, "Gewinner fragen", 130)
     wh:SetPoint("LEFT", ask, "RIGHT", 6, 0)
     wh:SetScript("OnClick", function() if UI.selected then CI.WhisperWinner(UI.selected) end end)
@@ -180,7 +185,7 @@ function UI:Create(p)
         if not link then return end
         local r = CI.Check(link)
         if r.state == "pending" then ns.Print("Can I have it: Gegenstandsdaten laden noch - gleich nochmal.") return end
-        ns.Print("Can I have it: " .. link .. " - " .. (CI.STATE_TXT[r.state] or "") .. " " .. (r.why or ""))
+        ns.Print("Can I have it: " .. link .. " - " .. (CI.STATE_TXT[r.state] or "kein Ausrüstungsteil") .. " " .. (r.why or ""))
     end)
     local el = p:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
     el:SetPoint("BOTTOMRIGHT", edit, "TOPRIGHT", 0, 2)
@@ -228,9 +233,11 @@ function UI:Refresh()
     if e then
         self.det:SetText(head .. "\n" .. e.link .. ": " .. (e.why or ""))
     else
-        self.det:SetText(head .. "\n|cff888888Hier erscheinen Drops, die zu deiner Offspec passen. Eine Zeile anklicken für Rat und Knöpfe.|r")
+        self.det:SetText(head .. "\n|cff888888Hier erscheint jeder Drop mit Würfelfenster. Zeile anklicken für Begründung und Knöpfe. Unten rechts: beliebigen Gegenstand prüfen.|r")
     end
-    self.ask:SetEnabled(e and (e.state == "ask" or e.state == "hold") and not e.mine and not e.winner and true or false)
+    local isWait = e and (e.state == "wait" or e.state == "boe")
+    self.ask:SetText(isWait and "Höflich fragen" or "Begründung posten")
+    self.ask:SetEnabled(e and e.state ~= "no" and not e.mine and true or false)
     self.wh:SetEnabled(e and e.winner and e.canWhisper and not e.mine and true or false)
     self.th:SetEnabled(e and e.mine and true or false)
 end
