@@ -1,4 +1,4 @@
-Craphunts Blacklisted Addon Suite (CBAS) 2.27.0 – Addon-Suite für WoW: Forever
+Craphunts Blacklisted Addon Suite (CBAS) 2.28.0 – Addon-Suite für WoW: Forever
 =====================================================
 
 AUFBAU DER SUITE (neu seit 2.25.0)
@@ -10,6 +10,8 @@ AUFBAU DER SUITE (neu seit 2.25.0)
                     auffällige Mitspieler, Claude-Tipps und nächster Autopilot-
                     Schritt, Can I have it, Gilden, Layer, Update.
                     Klick auf eine Zeile öffnet das passende Modul. /crap lage
+                    Unteransicht "Tracker": was ist heute / diese Woche
+                    erledigt? (neu in 2.28.0, siehe TRACKER)
   * GScout        - die Gildendatenbank: "Gilden" und "Gildenlose"
   * Geierwacht    - Loot-Kontrolle: "Spieler & Runs" und "Can I have it"
   * Flipper       - AH-Flips und Händler-Flips planen (mit Auctionator/TSM)
@@ -227,6 +229,24 @@ MAGE-DIENSTE (neu in 2.27.0, nur auf Magiern)
 - Was CBAS NICHT tut (Blizzard-Regeln): ohne Tastendruck zaubern, handeln,
   einladen oder Chat-Nachrichten abschicken.
 - Neue Dateien: nach dem Update einmal WoW neu starten.
+
+TRACKER (Lage > Tracker, neu in 2.28.0, /crap tracker)
+  Zwei Spalten: HEUTE und DIESE WOCHE, je mit "x/y erledigt" und der Zeit bis
+  zum Reset des Servers. Die Lage zeigt eine Zeile "Heute 2/3 · Woche 1/4" -
+  kurz vor dem Tages-Reset (unter 3 Std.) rückt sie nach oben, wenn noch etwas
+  offen ist.
+- Hakt sich selbst ab:
+  * Auktionshaus besucht (heute)
+  * GScout-Scans: jede gesendete /who-Abfrage zählt; Ziel pro Tag mit -/+
+    unten links einstellbar (Standard 10)
+  * Mage: Wasser-Vorrat aufgefüllt (nur auf Magiern)
+  * Raids (Woche): alle Raids, für die du eine ID hast, mit Fortschritt
+    ("3/8") und Reset; erledigt, wenn alle Bosse liegen. ZG/AQ20 haben ihren
+    eigenen 3-Tage-Reset. Unten rechts weitere Raids zum Verfolgen anklicken.
+- Eigene Aufgaben: unten eintragen, "Täglich"/"Wöchentlich" wählen,
+  "Hinzufügen" (oder Enter). Klick auf eine Zeile hakt ab, x löscht.
+  Höchstens 20. Die Liste gilt für alle Charaktere, die Haken je Charakter.
+- Reset: täglich bzw. wöchentlich zum Server-Reset (wie die Quests).
 
 VERBUNDENE ADDONS (Lage)
   Die Lage zeigt, welche Addons CBAS nutzt: Auctionator (Preise, Claude-Tipps),
@@ -475,6 +495,7 @@ BEFEHLE
 /crap                 Fenster öffnen/schließen
 /crap scan            Weiter scannen (nächste sinnvolle /who-Abfrage)
 /crap mage            Mage-Dienste öffnen
+/crap tracker         Tracker öffnen (heute / diese Woche)
 /crap raidscan        nächster Raid-Scan-Schritt
 /crap 60              nächster 60er-Gebiets-Scan
 /crap stadt           nächster Hauptstadt-Scan (60er)

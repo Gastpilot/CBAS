@@ -4,7 +4,7 @@ WoW-Forever-Addon (Midnight-Client, Interface 16001). Befehl im Spiel: `/crap`
 
 | Ansicht | Inhalt |
 |---|---|
-| **Lage** | Startseite: zeigt nach Wichtigkeit sortiert, was gerade zählt (auffällige Mitspieler, Tipps am AH, Update, Layer) |
+| **Lage** | Startseite: zeigt nach Wichtigkeit sortiert, was gerade zählt (auffällige Mitspieler, Tipps am AH, Update, Layer) · Unteransicht **Tracker**: heute / diese Woche erledigt (Raid-IDs, AH, Scans, eigene Aufgaben) |
 | **GScout** | Gildendatenbank: Rekrutierung, Loot-System, Leistungswert, Layer, Leistungskurve · Ansicht „Gildenlose“ |
 | **Geierwacht** | Passt der Bedarf-Wurf zu Klasse und Spec? Main-/Offspec, Runs |
 | **Can I have it** | Offspec-Teile fair bekommen: Rat bei jedem Drop (wer braucht es als Mainspec?) und höfliche, fertige Texte |

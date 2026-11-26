@@ -249,7 +249,12 @@ local function AddonsRow()
     return r
 end
 
-local SOURCES = { GroupRow, AHRow, MageRow, CIHIRow, GScoutRow, LayerRow, UpdateRow, AddonsRow }
+-- Tracker: heute/diese Woche erledigt? (UI/Tracker.lua)
+local function TrackerRow()
+    return ns.Tracker and ns.Tracker.HomeRow() or nil
+end
+
+local SOURCES = { GroupRow, AHRow, MageRow, TrackerRow, CIHIRow, GScoutRow, LayerRow, UpdateRow, AddonsRow }
 
 function H.Collect()
     local list = {}
@@ -504,6 +509,7 @@ end
 ns.Suite:RegisterModule({
     id = "home",
     name = "Lage",
+    subName = "Übersicht",
     icon = "Interface\\Icons\\INV_Misc_Spyglass_02",
     desc = "Was gerade zählt – je nachdem, wo du bist",
     create = function(p) H:Create(p) end,

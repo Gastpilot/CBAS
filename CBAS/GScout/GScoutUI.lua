@@ -1484,6 +1484,8 @@ SlashCmdList["CBAS"] = function(msg)
                     ns.Geier.VERDICT_TEXT[v] or v, reason or ""))
             end
         end
+    elseif cmd == "tracker" or cmd == "todo" then
+        ns.Suite:Toggle("tracker")
     elseif cmd == "mage" or cmd == "magier" then
         ns.Suite:Toggle("mage")
     elseif cmd == "scan" then
