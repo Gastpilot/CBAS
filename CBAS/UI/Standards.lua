@@ -59,6 +59,8 @@ function STD.ShowMenu(owner)
             function() Toggle("flagEN", true) end)
         root:CreateCheckbox("Infos in der Gruppensuche", function() return IsOn("lfgInfo", true) end,
             function() Toggle("lfgInfo", true) end)
+        root:CreateCheckbox("Warn-Symbole in der Gruppensuche", function() return IsOn("lfgBadges", true) end,
+            function() Toggle("lfgBadges", true); if ns.LFGInfo then pcall(ns.LFGInfo.RefreshRows) end end)
         root:CreateCheckbox("Layerwechsel im Chat melden", function() return IsOn("layerChat", false) end,
             function() Toggle("layerChat", false) end)
         local cihi = ns.db.settings.cihi

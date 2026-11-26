@@ -1,4 +1,4 @@
-Craphunts Blacklisted Addon Suite (CBAS) 2.25.1 – Addon-Suite für WoW: Forever
+Craphunts Blacklisted Addon Suite (CBAS) 2.26.0 – Addon-Suite für WoW: Forever
 =====================================================
 
 AUFBAU DER SUITE (neu seit 2.25.0)
@@ -230,6 +230,16 @@ GRUPPENSUCHE (Blizzard und LFGForever)
     Blacklist-Gilde, von dir markiert (Geierwacht), x-mal Geier-Bedarf bzw.
     fragwürdiger Bedarf, wie viele Runs ihr schon zusammen hattet.
   Abschalten: Einstellungen > Chat & Flaggen > "CBAS-Infos in der Gruppensuche".
+  WARN-SYMBOLE IN DER ERGEBNISLISTE (neu in 2.26.0): auffällige Gruppen siehst
+  du schon in der Liste, ohne drüberzufahren:
+  - roter Streifen links + rotes Symbol rechts oben = mindestens ein Spieler
+    aus einer Blacklist-Gilde, von dir markiert oder mit Geier-Bedarf
+  - gelb = fragwürdiger Bedarf
+  - Zahl neben dem Symbol = so viele auffällige Spieler (ab 2)
+  Gruppen ohne Befund bleiben unmarkiert. Nach jeder Suche und beim Scrollen
+  frisch; das Urteil je Gruppe wird 15 s gemerkt.
+  An/aus: Einstellungen > Chat & Flaggen > "Warn-Symbole in der Ergebnisliste"
+  oder Rechtsklick auf das Einhorn.
 
 MINIMAP-KNOPF & STANDARDS
   Minimap-Knopf: goldenes Einhorn auf dunkelblauer Scheibe (wie Polestar), ohne Rand.

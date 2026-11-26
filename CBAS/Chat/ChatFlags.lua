@@ -320,7 +320,9 @@ function CF.BuildSettings(page, y, width)
     box.en = Add("Englisch mit |cff9fc5ffEN|r kennzeichnen", "Englisch verrät kein Land – deshalb gibt es dafür ein blaues EN statt einer Flagge.",
         function(c) ns.db.settings.flagEN = c:GetChecked() and true or false; wipe(cache) end)
     box.li = Add("CBAS-Infos in der Gruppensuche", "Zusatzfenster unter jedem Eintrag: Warnstufe, Sprachen, Gilden, Geier-Zahlen, gemeinsame Runs.",
-        function(c) ns.db.settings.lfgInfo = c:GetChecked() and true or false end)
+        function(c) ns.db.settings.lfgInfo = c:GetChecked() and true or false; if ns.LFGInfo then pcall(ns.LFGInfo.RefreshRows) end end)
+    box.lb = Add("Warn-Symbole in der Ergebnisliste", "Rot = Blacklist, markiert oder Geier · gelb = fragwürdiger Bedarf. Streifen links, Symbol rechts oben, Zahl = wie viele Spieler.",
+        function(c) ns.db.settings.lfgBadges = c:GetChecked() and true or false; if ns.LFGInfo then pcall(ns.LFGInfo.RefreshRows) end end)
 
     y = y - 10
     local h = T.Section(page, "Mein Land", width)
@@ -362,6 +364,7 @@ function CF.UpdateSettings()
     box.cb:SetChecked(Enabled())
     box.en:SetChecked(ns.db.settings.flagEN ~= false)
     box.li:SetChecked(ns.db.settings.lfgInfo ~= false)
+    box.lb:SetChecked(ns.db.settings.lfgBadges ~= false)
     local c = CF.My()
     box.cur:SetText(c and (CF.Icon(c, 14) .. " " .. (CF.NAMES[c] or c)) or "|cff888888nicht gesetzt|r")
 end
