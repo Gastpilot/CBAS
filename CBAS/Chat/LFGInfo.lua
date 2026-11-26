@@ -43,6 +43,8 @@ local function GeierStats()
     return geier, frag, runs
 end
 
+LI.GeierStats = GeierStats
+
 local CLASS_COLOR = function(cls)
     local c = cls and RAID_CLASS_COLORS and RAID_CLASS_COLORS[cls]
     return c and c.colorStr and ("|c" .. c.colorStr) or "|cffffffff"

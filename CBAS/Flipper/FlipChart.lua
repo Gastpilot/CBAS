@@ -11,7 +11,7 @@ local WD = { "So", "Mo", "Di", "Mi", "Do", "Fr", "Sa" }
 
 local function Create()
     if C.frame then return C.frame end
-    local f = CreateFrame("Frame", "CBASChart", UIParent, "BasicFrameTemplateWithInset")
+    local f = ns.T.Window("CBASChart")
     f:SetSize(W + 40, H + 270)
     f:SetPoint("CENTER", 120, 40)
     f:SetFrameStrata("DIALOG")

@@ -47,7 +47,7 @@ SendChatMessage=function(m,c) SENT={m,c} end
 ns=lua.table()
 toc=[l.strip() for l in open('CBAS/CBAS.toc') if l.strip().endswith('.lua')]
 for f in toc:
-    src=open('CBAS/'+f,encoding='utf-8').read()
+    src=open('CBAS/'+f.replace(chr(92),'/'),encoding='utf-8').read()
     lua.eval('function(ns,s,n) local c,e=load(s,n) if not c then error(e) end return c("CBAS",ns) end')(ns,src,f)
 lua.eval('function(ns) for _,fr in ipairs(FRAMES) do if fr.h then fr.h(fr,"ADDON_LOADED","CBAS") end end for _,fr in ipairs(FRAMES) do if fr.h then fr.h(fr,"PLAYER_LOGIN") end end end')(ns)
 GW=ns.Geier

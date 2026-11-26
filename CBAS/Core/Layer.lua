@@ -66,7 +66,7 @@ function L:Seen(unit)
     if not cur or cur.key ~= key or cur.zone ~= zone then
         local old = cur
         self.cur = { key = key, zone = zone, server = server, zid = zoneUID, t = time() }
-        -- Chat-Meldung nur, wenn eingeschaltet (Zahnrad > Chat); sonst steht der Layer nur oben rechts
+        -- Chat-Meldung nur, wenn eingeschaltet (Einstellungen > Layer); sonst steht der Layer nur in der Kopfzeile
         if old and old.zone == zone and old.key ~= key and ns.db.settings.layerChat then
             ns.Print(string.format("Layer gewechselt: %s -> %s (%s)", L.Label(old), L.Label(self.cur), zone))
         end

@@ -1,15 +1,25 @@
-Craphunts Blacklisted Addon Suite (CBAS) 2.24.0 – Addon-Suite für WoW: Forever
+Craphunts Blacklisted Addon Suite (CBAS) 2.25.1 – Addon-Suite für WoW: Forever
 =====================================================
 
-AUFBAU DER SUITE
-- /crap öffnet das Suite-Fenster. Oben sind Reiter für die einzelnen Module:
-  * GScout        - die Gildendatenbank. Oben neben den Reitern umschalten:
-                    "Gilden" | "Gildenlose" (gildenlose Spieler und Gildensucher)
-  * Geierwacht    - Loot-Kontrolle: passt der Bedarf-Wurf zur Klasse?
+AUFBAU DER SUITE (neu seit 2.25.0)
+- /crap öffnet das CBAS-Fenster. Links steht die Seitenleiste mit allen Modulen,
+  Unteransichten sind darunter eingerückt und immer sichtbar:
+  * Lage          - Startseite: eine Tafel wie am Bahnhof. Oben steht, wo du
+                    gerade bist (Gruppe, Auktionshaus, unterwegs), darunter die
+                    Zeilen, die jetzt zählen - nach Wichtigkeit sortiert:
+                    auffällige Mitspieler, Claude-Tipps und nächster Autopilot-
+                    Schritt, Can I have it, Gilden, Layer, Update.
+                    Klick auf eine Zeile öffnet das passende Modul. /crap lage
+  * GScout        - die Gildendatenbank: "Gilden" und "Gildenlose"
+  * Geierwacht    - Loot-Kontrolle: "Spieler & Runs" und "Can I have it"
   * Flipper       - AH-Flips und Händler-Flips planen (mit Auctionator/TSM)
-  * Einstellungen - Zahnrad oben rechts in der Titelleiste: alle Schalter,
-                    Datenbank-Statistik, Aufräumen
-- Das Fenster merkt sich den zuletzt geöffneten Reiter und seine Position.
+  * Einstellungen - links unten: nach Bereichen sortiert (Allgemein, GScout,
+                    Geierwacht, Flipper, Chat & Flaggen, Layer, Daten), jede
+                    Option als Schalter mit kurzer Erklärung
+- Oben in der Kopfzeile: Name der Ansicht, dein Layer und die Welt.
+- Knöpfe haben eine Rangordnung: pink = Haupt-Aktion (z. B. Who-Scan, Suchen,
+  Einstellen), grau = normal, nur Text = Werkzeug (Export, Chat-Log, Kurve).
+- Das Fenster merkt sich die zuletzt geöffnete Ansicht und seine Position.
 - Verschieben: an jeder freien Stelle (oder an der Titelleiste) mit der linken
   Maustaste festhalten und ziehen. Zurück in die Mitte: /crap reset
 - GRÖSSE: Griff unten rechts ziehen = größer/kleiner (Schrift, Listen und Knöpfe
@@ -17,10 +27,9 @@ AUFBAU DER SUITE
   den Einstellungen oder /crap groesse 130 (60 bis 200 %). Wird gespeichert.
 - Knöpfe mit Wartezeit sind gesperrt und zählen im Knopf herunter:
   Who, Instanz, 60er, Zuordnen, /who Gilde (5 s) und "In Gruppe melden" (10 s).
-- /crap gscout bzw. /crap settings öffnen direkt den jeweiligen Reiter.
-- Weitere Module kommen als zusätzliche Reiter dazu.
+- /crap lage, /crap gscout bzw. /crap settings öffnen direkt die jeweilige Ansicht.
 
-GILDENLOS (eigener Reiter)
+GILDENLOS (Unteransicht von GScout)
 - Alle Spieler, bei denen das Spiel keine Gilde meldet - vor allem aus /who
   (Who-, 60er-, Städte-Scan) und von Spielern, die du siehst (nach kurzer
   Nachprüfung, damit nicht "noch nicht geladen" als gildenlos zählt).
@@ -190,7 +199,7 @@ LEICHTGEWICHTIG BLEIBEN
   Geierwacht-Einträge, 1000 Buchungen.
 - /crap mem zeigt den Speicher von CBAS. Der Wert schwankt, weil WoW
   ungenutzten Speicher erst nach und nach freigibt.
-- Wer es noch leichter will: Einstellungen (Zahnrad) > "Namensplaketten
+- Wer es noch leichter will: Einstellungen > GScout > "Namensplaketten
   mitlesen" aus - in vollen Städten der größte Dauerverbraucher.
 
 CAN I HAVE IT (Geierwacht > "Can I have it", /crap cihi)
@@ -220,17 +229,17 @@ GRUPPENSUCHE (Blizzard und LFGForever)
   - je Spieler: Flagge, Name, <Gilde> mit Leistung und Lootsystem (GScout),
     Blacklist-Gilde, von dir markiert (Geierwacht), x-mal Geier-Bedarf bzw.
     fragwürdiger Bedarf, wie viele Runs ihr schon zusammen hattet.
-  Abschalten: Zahnrad > Chat & Anzeige > "CBAS-Infos in der Gruppensuche".
+  Abschalten: Einstellungen > Chat & Flaggen > "CBAS-Infos in der Gruppensuche".
 
 MINIMAP-KNOPF & STANDARDS
-  Minimap-Knopf: weißes Einhorn auf pinkem Kreis, ohne Rand.
+  Minimap-Knopf: goldenes Einhorn auf dunkelblauer Scheibe (wie Polestar), ohne Rand.
   Linksklick = Fenster, Umschalt+Klick = Flipper, ziehen = verschieben,
   grüner Punkt = neue Version.
   Rechtsklick = Optionen-Menü: GScout, Geierwacht, Can I have it, Flipper
   direkt öffnen; Länderflaggen, EN-Kennzeichnung, Gruppensuche-Infos,
   Layer-Meldungen und Can-I-have-it-Popup an/aus; alle Einstellungen;
   Knopf ausblenden. Rechtsklick im Addon-Fach öffnet dasselbe Menü.
-  An/aus: Zahnrad > Chat & Anzeige oder /crap minimap.
+  An/aus: Einstellungen > Allgemein oder /crap minimap.
   Außerdem: Eintrag unter Optionen > AddOns > CBAS, Addon-Fach an der Minimap
   mit Tooltip, ESC schließt alle CBAS-Fenster, Tastenbelegungen unter
   Tastenbelegung > AddOns.
@@ -249,19 +258,19 @@ LÄNDERFLAGGEN IM CHAT
      Tipp: in LFGForever ab und zu nur "Deutsch" bzw. nur "Englisch" suchen.
   4. Sprache der Gilde aus GScout (Notnagel)
   Englisch: keine Länderflagge, sondern die Kennzeichnung EN (abschaltbar:
-  Zahnrad > Chat & Anzeige > "Englisch mit EN kennzeichnen").
+  Einstellungen > Chat & Flaggen > "Englisch mit EN kennzeichnen").
   Unklar = gar keine Kennzeichnung. Deutsch schreibende Österreicher/Schweizer bekommen
   erst nach eigener Angabe oder mit CBAS die richtige Flagge.
-  Zahnrad > Chat: an/aus und "Mein Land" (Standard: Sprache deines WoW-Clients).
+  Einstellungen > Chat & Flaggen: an/aus und "Mein Land" (Standard: Sprache deines WoW-Clients).
   Ohne CBAS beim anderen gibt es nur die Schätzung aus Chat und Gilde: WoW lässt
   Addons nur mit Addons reden, den Client eines anderen kann man nicht abfragen.
   /crap land AT  ·  /crap land an|aus  ·  /crap land (alle Flaggen zeigen)
 
 VERSION & UPDATES
-- Zahnrad > Version: installierte Version und der Download-Link, der immer
+- Einstellungen > Allgemein > Version: installierte Version und der Download-Link, der immer
   auf die neueste Version zeigt (Link anklicken, Strg+C, im Browser einfügen):
   https://github.com/Gastpilot/CBAS/releases/latest/download/CBAS.zip
-- Neue Version: CBAS meldet sich im Chat, und am Zahnrad leuchtet ein grüner
+- Neue Version: CBAS meldet sich im Chat, und bei "Einstellungen" leuchtet ein grüner
   Punkt. Woher CBAS das weiß (ins Internet darf ein Addon nicht):
   * von anderen CBAS-Spielern in Gilde und Gruppe - jedes CBAS nennt beim
     Einloggen/Gruppenbeitritt unsichtbar seine Version (höchstens alle 5 Min.,
@@ -375,7 +384,7 @@ LAYER & WELT (damit ihr nicht alle dasselbe auslest)
 - Erkannt wird der Layer an den IDs der NPCs: einen NPC anvisieren, mit der Maus
   berühren oder Namensplaketten sehen. Nummern gelten je Zone (#1 = kleinste ID);
   "#2/3" = Layer 2 von 3 bekannten. Ein Layerwechsel steht nur oben rechts -
-  Chat-Meldung optional: Zahnrad > Chat > "Layerwechsel im Chat melden".
+  Chat-Meldung optional: Einstellungen > Layer > "Layerwechsel im Chat melden".
 - Im Gildenprofil: "Per /who gesehen auf Layer #1 Orgrimmar ...".
 - LAYER-PARTNER: in den Einstellungen Namen eintragen (Komma, Enter) oder
   /crap partner add <Name>. Partner müssen in der Freundesliste stehen und CBAS
@@ -425,11 +434,12 @@ BEFEHLE
 /crap resolve         Rekrutierer ohne Gildennamen auflösen
 /crap export          CSV-Export (Gilden + alle Spieler)
 /crap log             Chat-Log mit Diagnose: erkannte, NICHT erkannte und rohe Nachrichten
-/crap gildenlos         Reiter Gildenlos öffnen
+/crap lage             Startseite Lage öffnen
+/crap gildenlos         Ansicht Gildenlose öffnen
 /crap layer             Layer, Welt und Layer-Partner anzeigen
 /crap partner add|del <Name>  Layer-Partner verwalten
-/crap geier             Reiter Geierwacht öffnen
-/crap flip              Reiter Flipper · pilot (Autopilot-Schritt) · snipe · ignore reset · event TT.MM.JJJJ Name · reset mi (Ansichten: Claude-Tipps, Heute flippen, Merkliste, Händler-Flips) · add [Gegenstand] · find (analysieren) · budget <Gold>
+/crap geier             Geierwacht öffnen
+/crap flip              Flipper · pilot (Autopilot-Schritt) · snipe · ignore reset · event TT.MM.JJJJ Name · reset mi (Ansichten: Claude-Tipps, Heute flippen, Merkliste, Händler-Flips) · add [Gegenstand] · find (analysieren) · budget <Gold>
 /crap check <Klasse> <Gegenstand>  passt der Gegenstand zur Klasse?
 /crap test <Text>     prüft, ob ein Text als Rekrutierung erkannt wird
 /crap finder [Text]   Gildenfinder durchsuchen (falls vorhanden)

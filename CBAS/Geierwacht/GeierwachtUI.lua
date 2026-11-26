@@ -617,7 +617,7 @@ end
 ns.Suite:RegisterModule({
     id = "geier",
     name = "Geierwacht",
-    subName = "Geierwacht",
+    subName = "Spieler & Runs",
     create = function(p) GUI:Create(p) end,
     onShow = function() GUI:Refresh() end,
 })

@@ -56,7 +56,7 @@ end
 
 local function Create()
     if GC.frame then return GC.frame end
-    local f = CreateFrame("Frame", "CBASGuildChart", UIParent, "BasicFrameTemplateWithInset")
+    local f = ns.T.Window("CBASGuildChart")
     f:SetSize(W + 40, H + 190)
     f:SetPoint("CENTER", 60, 30)
     f:SetFrameStrata("DIALOG")

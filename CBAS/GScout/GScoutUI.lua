@@ -247,15 +247,16 @@ function UI:Create(parent)
     Tip(search, "Durchsucht Name, Notizen, Loot, Fokus und Raidtage.\nz.B. \"dkp\", \"raid\", \"mi\"")
     self.search = search
 
+    -- Filter: Abstaende richten sich nach der Textbreite (nichts ueberlappt)
     self.cbRecruit = MakeCheck(f, "Rekrutiert", "Nur Gilden mit Rekrutierungsnachricht in den letzten 30 Tagen")
-    self.cbRecruit:SetPoint("LEFT", search, "RIGHT", 10, 0)
+    self.cbRecruit:SetPoint("LEFT", search, "RIGHT", 12, 0)
     self.cbFaction = MakeCheck(f, "Meine Fraktion")
-    self.cbFaction:SetPoint("LEFT", self.cbRecruit, "RIGHT", 70, 0)
+    self.cbFaction:SetPoint("LEFT", self.cbRecruit.label, "RIGHT", 12, -1)
     self.cbBlacklist = MakeCheck(f, "Ohne Blacklist")
-    self.cbBlacklist:SetPoint("LEFT", self.cbFaction, "RIGHT", 88, 0)
+    self.cbBlacklist:SetPoint("LEFT", self.cbFaction.label, "RIGHT", 12, -1)
     self.cbBlacklist:SetChecked(true)
     self.cbTop = MakeCheck(f, "High Performer", "Nur Gilden mit Leistungswert ab 50 (stark/Top).\nBeim Anklicken wird nach Leistung sortiert.")
-    self.cbTop:SetPoint("LEFT", self.cbBlacklist, "RIGHT", 86, 0)
+    self.cbTop:SetPoint("LEFT", self.cbBlacklist.label, "RIGHT", 12, -1)
     local instBtn = MakeButton(f, "Instanz: alle", 175, 22)
     instBtn:SetPoint("TOPRIGHT", -16, -31)
     instBtn:SetScript("OnClick", function() UI:ToggleInstMenu() end)
@@ -363,48 +364,52 @@ function UI:Create(parent)
 
     self:CreateDetail(f)
 
-    -- Untere Leiste
-    local scanBtn = MakeButton(f, "Who-Scan", 110)
-    scanBtn:SetPoint("BOTTOMLEFT", 14, 12)
+    -- Untere Leiste: links die Scans als zusammenhaengende Gruppe (Who-Scan hervorgehoben),
+    -- rechts leise die Werkzeuge
+    local T = ns.T
+    local function Btn(text, w, kind) return T.Button(f, text, w, 24, kind) end
+    local scanBtn = Btn("Who-Scan", 100, "primary")
+    scanBtn:SetPoint("BOTTOMLEFT", 16, 14)
     scanBtn:SetScript("OnClick", function() ns.WhoScanStep() end)
     Tip(scanBtn, "Jeder Klick schickt eine /who-Abfrage (Levelbereich bzw. Klasse) und speichert alle Gilden der Treffer.\nEinfach regelmaessig durchklicken (Wartezeit 5 s).")
     self.scanBtn = scanBtn
 
-    local zoneBtn = MakeButton(f, "Instanz-Scan", 115)
-    zoneBtn:SetPoint("LEFT", scanBtn, "RIGHT", 6, 0)
+    local zoneBtn = Btn("Instanz-Scan", 118)
+    zoneBtn:SetPoint("LEFT", scanBtn, "RIGHT", 3, 0)
     zoneBtn:SetScript("OnClick", function() ns.WhoZoneStep() end)
     Tip(zoneBtn, "Jeder Klick: /who auf einen Raid oder Dungeon (MC, BWL, ZG ... Strat, Scholo, BRD ... bis Todesminen).\nZeigt, welche Gilden gerade drin sind.\nSind 3+ Mitglieder einer Gilde gleichzeitig drin, zählt das als Gildengruppe - inkl. Wochentag und Uhrzeit.\nNur Raids: /crap dungeons")
     self.zoneBtn = zoneBtn
 
-    local z60Btn = MakeButton(f, "60er-Scan", 140)
-    z60Btn:SetPoint("LEFT", zoneBtn, "RIGHT", 6, 0)
+    local z60Btn = Btn("60er-Scan", 132)
+    z60Btn:SetPoint("LEFT", zoneBtn, "RIGHT", 3, 0)
     z60Btn:SetScript("OnClick", function() ns.WhoZone60Step() end)
     Tip(z60Btn, "Jeder Klick: /who auf alle Level-60-Spieler in einem Endgame-Gebiet (Silithus, Winterquell, Pestländer ...) und danach in den Hauptstädten.\nIst ein Gebiet voll (50 Treffer), werden die Klassen automatisch einzeln abgefragt.\nGebiete, in denen oft 60er stehen, lernt das Addon selbst dazu.\nHauptstädte an/aus: /crap staedte")
     self.z60Btn = z60Btn
 
-    local capBtn = MakeButton(f, "Städte", 105)
-    capBtn:SetPoint("LEFT", z60Btn, "RIGHT", 6, 0)
+    local capBtn = Btn("Städte", 112)
+    capBtn:SetPoint("LEFT", z60Btn, "RIGHT", 3, 0)
     capBtn:SetScript("OnClick", function() ns.WhoCapitalStep() end)
     Tip(capBtn, "Jeder Klick: /who auf alle Level-60-Spieler in einer Hauptstadt\n(Orgrimmar, Unterstadt, Donnerfels, Sturmwind, Eisenschmiede, Darnassus).\nIst eine Stadt voll (50 Treffer), werden die Klassen automatisch einzeln abgefragt.")
     self.capBtn = capBtn
 
-    local pendBtn = MakeButton(f, "Unzugeordnet: 0", 105)
-    pendBtn:SetPoint("LEFT", capBtn, "RIGHT", 6, 0)
+    local pendBtn = Btn("Unzugeordnet: 0", 116)
+    pendBtn:SetPoint("LEFT", capBtn, "RIGHT", 3, 0)
     pendBtn:SetScript("OnClick", function() ns.ResolveNextPending() end)
     Tip(pendBtn, "Rekrutierungsnachrichten, bei denen kein Gildenname erkennbar war.\nKlick = /who auf den Absender, um seine Gilde zu ermitteln.")
     self.pendBtn = pendBtn
 
-    local expBtn = MakeButton(f, "Export", 70)
-    expBtn:SetPoint("LEFT", pendBtn, "RIGHT", 6, 0)
+    local expBtn = Btn("Export", 64, "quiet")
+    expBtn:SetPoint("BOTTOMRIGHT", -14, 14)
     expBtn:SetScript("OnClick", function() UI:ShowExport() end)
+    Tip(expBtn, "Gildenliste als Text zum Kopieren (z. B. für eine Tabelle).")
 
-    local logBtn = MakeButton(f, "Chat-Log", 70)
-    logBtn:SetPoint("LEFT", expBtn, "RIGHT", 6, 0)
+    local logBtn = Btn("Chat-Log", 76, "quiet")
+    logBtn:SetPoint("RIGHT", expBtn, "LEFT", -2, 0)
     logBtn:SetScript("OnClick", function() UI:ShowChatLog() end)
     Tip(logBtn, "Alle Rekrutierungsnachrichten, die das Addon im Chat erkannt hat - mit zugeordneter Gilde.")
 
-    local curveBtn = MakeButton(f, "Kurve", 76)
-    curveBtn:SetPoint("LEFT", logBtn, "RIGHT", 6, 0)
+    local curveBtn = Btn("Kurve", 64, "quiet")
+    curveBtn:SetPoint("RIGHT", logBtn, "LEFT", -2, 0)
     curveBtn:SetScript("OnClick", function() ns.GuildChart.Toggle() end)
     Tip(curveBtn, "Leistungskurve: alle Gilden der Liste nach Leistungswert sortiert (mit den aktuellen Filtern).\nUmschaltbar auf den Verlauf der besten 10 Gilden über die Tage.")
 
@@ -1213,7 +1218,7 @@ end
 
 function UI:ShowExport(titleText, bodyText)
     if not self.exportFrame then
-        local f = CreateFrame("Frame", "CBASExport", UIParent, "BasicFrameTemplateWithInset")
+        local f = ns.T.Window("CBASExport")
         f:SetSize(700, 420)
         f:SetPoint("CENTER")
         f:SetFrameStrata("DIALOG")
@@ -1342,6 +1347,8 @@ SlashCmdList["CBAS"] = function(msg)
     elseif cmd == "reset" then
         ns.Suite:Create()
         ns.Suite:ResetPosition()
+    elseif cmd == "lage" or cmd == "home" or cmd == "start" then
+        ns.Suite:Toggle("home")
     elseif cmd == "settings" or cmd == "einstellungen" or cmd == "optionen" then
         ns.Suite:Toggle("settings")
     elseif cmd == "gscout" or cmd == "gilden" then

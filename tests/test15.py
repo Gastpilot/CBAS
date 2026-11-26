@@ -45,7 +45,7 @@ la2=LuaRuntime(unpack_returned_tuples=True); la2.execute('PNAME="Bernd"'); la2.e
 la2.execute('UnitFullName=function() return "Bernd","Treoninka" end')
 ns2=la2.table()
 for f in [l.strip() for l in open('CBAS/CBAS.toc') if l.strip().endswith('.lua') and 'UI' not in l and 'Suite' not in l and 'Flipper' not in l]:
-    la2.eval('function(ns,s) return load(s)("CBAS",ns) end')(ns2,open('CBAS/'+f,encoding='utf-8').read())
+    la2.eval('function(ns,s) return load(s)("CBAS",ns) end')(ns2,open('CBAS/'+f.replace(chr(92),'/'),encoding='utf-8').read())
 la2.eval('function(ns) for _,fr in ipairs(FRAMES) do if fr.h then fr.h(fr,"ADDON_LOADED","CBAS") end end for _,fr in ipairs(FRAMES) do if fr.h then fr.h(fr,"PLAYER_LOGIN") end end end')(ns2)
 lua.execute('OUTBOX={}'); ns.Sync.lastBroadcast=None; ns.Sync.active=False
 lua.execute('IsInGroup=function() return true end')

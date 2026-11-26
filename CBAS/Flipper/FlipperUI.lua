@@ -364,6 +364,12 @@ function FUI:Create(p)
         FUI:Build()
     end)
     self.B = B
+    -- Rangordnung: Haupt-Aktion je Ansicht pink, Aufraeum-Knoepfe leise
+    if ns.T then
+        for k, kind in pairs({ search = "primary", post = "primary", ignore = "quiet", unstock = "quiet", del = "quiet" }) do
+            ns.T.StyleButton(B[k], kind)
+        end
+    end
     self.btnLayout = {
         kaufen = { "search", "analyze", "toWatch", "ignore" },
         lager = { "post", "unstock" },

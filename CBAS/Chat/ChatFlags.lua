@@ -303,73 +303,37 @@ end
 ---------------------------------------------------------------------------
 -- Einstellungen (rechte Spalte unter "Version")
 ---------------------------------------------------------------------------
-function CF.BuildSettings(p)
-    local box = CreateFrame("Frame", nil, p, "BackdropTemplate")
-    box:SetSize(330, 188)
-    if p.versionBox then box:SetPoint("TOPRIGHT", p.versionBox, "BOTTOMRIGHT", 0, -8) else box:SetPoint("TOPRIGHT", -22, -164) end
-    if box.SetBackdrop then
-        box:SetBackdrop({ bgFile = "Interface\\ChatFrame\\ChatFrameBackground", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-            edgeSize = 12, insets = { left = 3, right = 3, top = 3, bottom = 3 } })
-        box:SetBackdropColor(0, 0, 0, 0.45)
+-- Einstellungen > Chat & Flaggen; baut ab Hoehe y in page und gibt die naechste freie Hoehe zurueck
+function CF.BuildSettings(page, y, width)
+    local T = ns.T
+    y = y or -36
+    width = width or 600
+    local box = {}
+    local function Add(label, desc, onChange)
+        local cb = T.Toggle(page, label, desc, onChange, width)
+        cb:SetPoint("TOPLEFT", 0, y)
+        y = y - cb.rowHeight
+        return cb
     end
-    local h = box:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    h:SetPoint("TOPLEFT", 10, -8)
-    h:SetText("Chat & Anzeige")
-    local cb = CreateFrame("CheckButton", nil, box, "UICheckButtonTemplate")
-    cb:SetSize(24, 24)
-    cb:SetPoint("TOPLEFT", 8, -24)
-    local cbt = cb:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    cbt:SetPoint("LEFT", cb, "RIGHT", 2, 1)
-    cbt:SetText("Länderflaggen vor Spielernamen")
-    cb:SetScript("OnClick", function(c) ns.db.settings.chatFlags = c:GetChecked() and true or false end)
-    box.cb = cb
-    local lc = CreateFrame("CheckButton", nil, box, "UICheckButtonTemplate")
-    lc:SetSize(24, 24)
-    lc:SetPoint("TOPLEFT", 8, -46)
-    local lct = lc:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    lct:SetPoint("LEFT", lc, "RIGHT", 2, 1)
-    lct:SetText("Layerwechsel im Chat melden")
-    lc:SetScript("OnClick", function(c2) ns.db.settings.layerChat = c2:GetChecked() and true or false end)
-    box.lc = lc
-    local mm = CreateFrame("CheckButton", nil, box, "UICheckButtonTemplate")
-    mm:SetSize(24, 24)
-    mm:SetPoint("TOPLEFT", 8, -68)
-    local mmt = mm:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    mmt:SetPoint("LEFT", mm, "RIGHT", 2, 1)
-    mmt:SetText("Minimap-Knopf anzeigen")
-    mm:SetScript("OnClick", function(c2) if ns.Standards then ns.Standards.SetMinimap(c2:GetChecked()) end end)
-    box.mm = mm
-    local en = CreateFrame("CheckButton", nil, box, "UICheckButtonTemplate")
-    en:SetSize(24, 24)
-    en:SetPoint("TOPLEFT", 8, -90)
-    local ent = en:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    ent:SetPoint("LEFT", en, "RIGHT", 2, 1)
-    ent:SetText("Englisch mit |cff9fc5ffEN|r kennzeichnen")
-    en:SetScript("OnClick", function(c2) ns.db.settings.flagEN = c2:GetChecked() and true or false; wipe(cache) end)
-    box.en = en
-    local li = CreateFrame("CheckButton", nil, box, "UICheckButtonTemplate")
-    li:SetSize(24, 24)
-    li:SetPoint("TOPLEFT", 8, -112)
-    local lit = li:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    lit:SetPoint("LEFT", li, "RIGHT", 2, 1)
-    lit:SetText("CBAS-Infos in der Gruppensuche")
-    li:SetScript("OnClick", function(c2) ns.db.settings.lfgInfo = c2:GetChecked() and true or false end)
-    box.li = li
-    local ml = box:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    ml:SetPoint("TOPLEFT", 12, -150)
-    ml:SetText("Mein Land:")
-    local prev = CreateFrame("Button", nil, box, "UIPanelButtonTemplate")
-    prev:SetSize(22, 20)
-    prev:SetPoint("LEFT", ml, "RIGHT", 8, 0)
-    prev:SetText("<")
-    local cur = box:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-    cur:SetPoint("LEFT", prev, "RIGHT", 8, 0)
-    cur:SetWidth(150)
+    box.cb = Add("Länderflaggen vor Spielernamen", "Im Chat steht vor jedem Namen die Flagge, sobald CBAS das Land kennt.",
+        function(c) ns.db.settings.chatFlags = c:GetChecked() and true or false end)
+    box.en = Add("Englisch mit |cff9fc5ffEN|r kennzeichnen", "Englisch verrät kein Land – deshalb gibt es dafür ein blaues EN statt einer Flagge.",
+        function(c) ns.db.settings.flagEN = c:GetChecked() and true or false; wipe(cache) end)
+    box.li = Add("CBAS-Infos in der Gruppensuche", "Zusatzfenster unter jedem Eintrag: Warnstufe, Sprachen, Gilden, Geier-Zahlen, gemeinsame Runs.",
+        function(c) ns.db.settings.lfgInfo = c:GetChecked() and true or false end)
+
+    y = y - 10
+    local h = T.Section(page, "Mein Land", width)
+    h:SetPoint("TOPLEFT", 0, y)
+    y = y - 26
+    local prev = T.Button(page, "<", 26, 22)
+    prev:SetPoint("TOPLEFT", 0, y)
+    local cur = page:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    cur:SetPoint("LEFT", prev, "RIGHT", 10, 0)
+    cur:SetWidth(170)
     cur:SetJustifyH("LEFT")
-    local nxt = CreateFrame("Button", nil, box, "UIPanelButtonTemplate")
-    nxt:SetSize(22, 20)
-    nxt:SetPoint("LEFT", prev, "RIGHT", 166, 0)
-    nxt:SetText(">")
+    local nxt = T.Button(page, ">", 26, 22)
+    nxt:SetPoint("LEFT", prev, "RIGHT", 190, 0)
     local function Step(d)
         local c = CF.My()
         local idx = 0
@@ -383,19 +347,19 @@ function CF.BuildSettings(p)
     prev:SetScript("OnClick", function() Step(-1) end)
     nxt:SetScript("OnClick", function() Step(1) end)
     box.cur = cur
-    local tip = box:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    tip:SetPoint("BOTTOMLEFT", 10, 8)
-    tip:SetText("Andere CBAS-Spieler sehen diese Flagge bei dir.")
+    local tip = page:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    tip:SetPoint("TOPLEFT", 0, y - 30)
+    tip:SetTextColor(T.C.dim[1], T.C.dim[2], T.C.dim[3])
+    tip:SetText("Andere CBAS-Spieler sehen diese Flagge bei dir. Auch per Befehl: /crap land DE")
     CF.box = box
     CF.UpdateSettings()
+    return y - 56
 end
 
 function CF.UpdateSettings()
     local box = CF.box
     if not box then return end
     box.cb:SetChecked(Enabled())
-    box.lc:SetChecked(ns.db.settings.layerChat and true or false)
-    box.mm:SetChecked(not ns.db.settings.minimapHide)
     box.en:SetChecked(ns.db.settings.flagEN ~= false)
     box.li:SetChecked(ns.db.settings.lfgInfo ~= false)
     local c = CF.My()

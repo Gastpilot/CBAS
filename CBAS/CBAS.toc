@@ -5,7 +5,7 @@
 ## X-Website: https://github.com/Gastpilot/CBAS
 ## Category: Craphunt
 ## Author: Craphunt
-## Version: 2.24.0
+## Version: 2.25.1
 ## OptionalDeps: Auctionator, TradeSkillMaster
 ## SavedVariables: CBASDB, GildenScoutDB
 ## IconTexture: Interface\AddOns\CBAS\Media\Unicorn
@@ -13,30 +13,33 @@
 ## AddonCompartmentFuncOnEnter: CBAS_OnCompartmentEnter
 ## AddonCompartmentFuncOnLeave: CBAS_OnCompartmentLeave
 
-Core.lua
-Instances.lua
-Language.lua
-Parser.lua
-Performance.lua
-Suite.lua
-UI.lua
-GuildChart.lua
-Unguilded.lua
-Geierwacht.lua
-GeierwachtUI.lua
-CanIHave.lua
-CanIHaveUI.lua
-Flipper.lua
+Core\Core.lua
+Core\Instances.lua
+Core\Language.lua
+Core\Parser.lua
+Core\Performance.lua
+UI\Theme.lua
+UI\Suite.lua
+UI\Settings.lua
+UI\Home.lua
+GScout\GScoutUI.lua
+GScout\GuildChart.lua
+GScout\Unguilded.lua
+Geierwacht\Geierwacht.lua
+Geierwacht\GeierwachtUI.lua
+Geierwacht\CanIHave.lua
+Geierwacht\CanIHaveUI.lua
+Flipper\Flipper.lua
 ClaudeTips.lua
-FlipChart.lua
-FlipperUI.lua
-FlipAuto.lua
-FlipSnipe.lua
-FlipStock.lua
-Sync.lua
-Inspect.lua
-Layer.lua
-Version.lua
-ChatFlags.lua
-LFGInfo.lua
-Standards.lua
+Flipper\FlipChart.lua
+Flipper\FlipperUI.lua
+Flipper\FlipAuto.lua
+Flipper\FlipSnipe.lua
+Flipper\FlipStock.lua
+Core\Sync.lua
+Core\Inspect.lua
+Core\Layer.lua
+Core\Version.lua
+Chat\ChatFlags.lua
+Chat\LFGInfo.lua
+UI\Standards.lua

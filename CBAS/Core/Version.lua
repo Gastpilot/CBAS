@@ -47,9 +47,9 @@ function V.UpdateBadge()
     if not (S and S.gear) then return end
     if not S.gearBadge then
         local b = S.gear:CreateTexture(nil, "OVERLAY")
-        b:SetSize(8, 8)
-        b:SetPoint("TOPRIGHT", 3, 3)
-        b:SetColorTexture(0.2, 1, 0.2, 1)
+        b:SetSize(7, 7)
+        b:SetPoint("RIGHT", -12, 0)
+        b:SetColorTexture(0.33, 0.86, 0.47, 1)
         S.gearBadge = b
     end
     S.gearBadge:SetShown(V.Latest() and true or false)
@@ -60,7 +60,7 @@ function V.Announce(force)
     local ver = V.Latest()
     if not ver or (announced and not force) then return end
     announced = true
-    ns.Print(string.format("|cff40ff40Neue Version %s verfügbar|r (du hast %s). Download-Link: Zahnrad > Version, oder |cffffd100/crap version|r.",
+    ns.Print(string.format("|cff40ff40Neue Version %s verfügbar|r (du hast %s). Download-Link: Einstellungen > Allgemein, oder |cffffd100/crap version|r.",
         ver, ns.VERSION))
     V.UpdateBadge()
 end
@@ -108,7 +108,7 @@ local function GroupChannel()
 end
 
 ---------------------------------------------------------------------------
--- Einstellungen: Versionsblock (oben rechts)
+-- Einstellungen: Versionsblock (Bereich Allgemein)
 ---------------------------------------------------------------------------
 function V.BuildSettings(p)
     local box = CreateFrame("Frame", nil, p, "BackdropTemplate")
@@ -119,18 +119,16 @@ function V.BuildSettings(p)
             edgeSize = 12, insets = { left = 3, right = 3, top = 3, bottom = 3 } })
         box:SetBackdropColor(0, 0, 0, 0.45)
     end
-    local h = box:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    h:SetPoint("TOPLEFT", 10, -8)
-    h:SetText("Version")
     local st = box:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    st:SetPoint("TOPLEFT", 10, -26)
-    st:SetPoint("TOPRIGHT", -10, -26)
+    st:SetPoint("TOPLEFT", 12, -12)
+    st:SetPoint("TOPRIGHT", -12, -12)
     st:SetJustifyH("LEFT")
     st:SetSpacing(2)
     box.status = st
     local e = CreateFrame("EditBox", nil, box, "InputBoxTemplate")
-    e:SetSize(306, 20)
-    e:SetPoint("BOTTOMLEFT", 14, 26)
+    e:SetHeight(20)
+    e:SetPoint("BOTTOMLEFT", 16, 30)
+    e:SetPoint("BOTTOMRIGHT", -12, 30)
     e:SetAutoFocus(false)
     e:SetText(V.URL)
     e:SetCursorPosition(0)
@@ -142,7 +140,7 @@ function V.BuildSettings(p)
     e:SetScript("OnEnterPressed", e.ClearFocus)
     box.link = e
     local hint = box:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    hint:SetPoint("BOTTOMLEFT", 10, 10)
+    hint:SetPoint("BOTTOMLEFT", 12, 11)
     hint:SetText("Link anklicken, Strg+C, im Browser einfügen. Zip nach Interface\\AddOns entpacken.")
     p.versionBox = box
     V.box = box
