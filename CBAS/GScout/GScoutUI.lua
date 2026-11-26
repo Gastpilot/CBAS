@@ -364,39 +364,59 @@ function UI:Create(parent)
 
     self:CreateDetail(f)
 
-    -- Untere Leiste: links die Scans als zusammenhaengende Gruppe (Who-Scan hervorgehoben),
-    -- rechts leise die Werkzeuge
+    -- Untere Leiste (seit 2.27.0): EIN pinker Knopf "Weiter scannen" - CBAS waehlt die naechste
+    -- sinnvolle /who-Abfrage. Daneben ein kleines Menue fuer gezielte Scans; rechts leise die Werkzeuge.
     local T = ns.T
-    local function Btn(text, w, kind) return T.Button(f, text, w, 24, kind) end
-    local scanBtn = Btn("Who-Scan", 100, "primary")
-    scanBtn:SetPoint("BOTTOMLEFT", 16, 14)
-    scanBtn:SetScript("OnClick", function() ns.WhoScanStep() end)
-    Tip(scanBtn, "Jeder Klick schickt eine /who-Abfrage (Levelbereich bzw. Klasse) und speichert alle Gilden der Treffer.\nEinfach regelmaessig durchklicken (Wartezeit 5 s).")
-    self.scanBtn = scanBtn
+    local function Btn(text, w, kind, parent) return T.Button(parent or f, text, w, 24, kind) end
+    local nextBtn = Btn("Weiter scannen", 132, "primary")
+    nextBtn:SetPoint("BOTTOMLEFT", 16, 14)
+    nextBtn:SetScript("OnClick", function() UI:HideScanMenu() ns.SmartScanStep() end)
+    Tip(nextBtn, "Jeder Klick schickt die nächste sinnvolle /who-Abfrage und speichert alle Gilden der Treffer.\nCBAS wechselt selbst ab: Rekrutierer zuordnen, Instanzen, 60er-Gebiete, Level/Klasse, Hauptstädte.\nVolle Gebiete werden automatisch nach Klassen aufgeteilt. Wartezeit 5 s.")
+    self.nextBtn = nextBtn
+    local menuBtn = Btn("Gezielt ...", 84, "quiet")
+    menuBtn:SetPoint("LEFT", nextBtn, "RIGHT", 2, 0)
+    menuBtn:SetScript("OnClick", function() UI:ToggleScanMenu() end)
+    Tip(menuBtn, "Gezielt scannen: eine bestimmte Scan-Art auswählen.")
+    self.menuBtn = menuBtn
+    local nextLbl = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    nextLbl:SetPoint("LEFT", menuBtn, "RIGHT", 10, 0)
+    nextLbl:SetWidth(300)
+    nextLbl:SetJustifyH("LEFT")
+    nextLbl:SetWordWrap(false)
+    nextLbl:SetTextColor(T.C.dim[1], T.C.dim[2], T.C.dim[3])
+    self.nextLbl = nextLbl
 
-    local zoneBtn = Btn("Instanz-Scan", 118)
-    zoneBtn:SetPoint("LEFT", scanBtn, "RIGHT", 3, 0)
-    zoneBtn:SetScript("OnClick", function() ns.WhoZoneStep() end)
-    Tip(zoneBtn, "Jeder Klick: /who auf einen Raid oder Dungeon (MC, BWL, ZG ... Strat, Scholo, BRD ... bis Todesminen).\nZeigt, welche Gilden gerade drin sind.\nSind 3+ Mitglieder einer Gilde gleichzeitig drin, zählt das als Gildengruppe - inkl. Wochentag und Uhrzeit.\nNur Raids: /crap dungeons")
-    self.zoneBtn = zoneBtn
-
-    local z60Btn = Btn("60er-Scan", 132)
-    z60Btn:SetPoint("LEFT", zoneBtn, "RIGHT", 3, 0)
-    z60Btn:SetScript("OnClick", function() ns.WhoZone60Step() end)
-    Tip(z60Btn, "Jeder Klick: /who auf alle Level-60-Spieler in einem Endgame-Gebiet (Silithus, Winterquell, Pestländer ...) und danach in den Hauptstädten.\nIst ein Gebiet voll (50 Treffer), werden die Klassen automatisch einzeln abgefragt.\nGebiete, in denen oft 60er stehen, lernt das Addon selbst dazu.\nHauptstädte an/aus: /crap staedte")
-    self.z60Btn = z60Btn
-
-    local capBtn = Btn("Städte", 112)
-    capBtn:SetPoint("LEFT", z60Btn, "RIGHT", 3, 0)
-    capBtn:SetScript("OnClick", function() ns.WhoCapitalStep() end)
-    Tip(capBtn, "Jeder Klick: /who auf alle Level-60-Spieler in einer Hauptstadt\n(Orgrimmar, Unterstadt, Donnerfels, Sturmwind, Eisenschmiede, Darnassus).\nIst eine Stadt voll (50 Treffer), werden die Klassen automatisch einzeln abgefragt.")
-    self.capBtn = capBtn
-
-    local pendBtn = Btn("Unzugeordnet: 0", 116)
-    pendBtn:SetPoint("LEFT", capBtn, "RIGHT", 3, 0)
-    pendBtn:SetScript("OnClick", function() ns.ResolveNextPending() end)
-    Tip(pendBtn, "Rekrutierungsnachrichten, bei denen kein Gildenname erkennbar war.\nKlick = /who auf den Absender, um seine Gilde zu ermitteln.")
-    self.pendBtn = pendBtn
+    -- Menue: die einzelnen Scan-Arten (frueher fuenf Knoepfe in der Leiste)
+    local menu = T.Card(f)
+    menu:SetSize(236, 168)
+    menu:SetPoint("BOTTOMLEFT", nextBtn, "TOPLEFT", 0, 6)
+    menu:SetFrameLevel((f:GetFrameLevel() or 1) + 40)
+    T.Box(menu, { 0.07, 0.075, 0.09, 0.98 }, T.C.lineHi)
+    menu:EnableMouse(true)
+    menu:Hide()
+    self.scanMenu = menu
+    local mh = menu:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    mh:SetPoint("TOPLEFT", 10, -8)
+    mh:SetText(T.Upper("Gezielt scannen"))
+    mh:SetTextColor(T.C.accentHi[1], T.C.accentHi[2], T.C.accentHi[3])
+    local function Item(text, y, fn, tip)
+        local b = Btn(text, 216, "quiet", menu)
+        b:SetPoint("TOPLEFT", 10, y)
+        b:SetScript("OnClick", function() UI:HideScanMenu() fn() end)
+        Tip(b, tip)
+        return b
+    end
+    self.pendBtn = Item("Unzugeordnet: 0", -26, function() ns.ResolveNextPending() end,
+        "Rekrutierungsnachrichten, bei denen kein Gildenname erkennbar war.\nKlick = /who auf den Absender, um seine Gilde zu ermitteln.")
+    self.zoneBtn = Item("Instanz-Scan", -52, function() ns.WhoZoneStep() end,
+        "/who auf einen Raid oder Dungeon (MC, BWL, ZG ... Strat, Scholo, BRD ... bis Todesminen).\nSind 3+ Mitglieder einer Gilde gleichzeitig drin, zählt das als Gildengruppe.\nNur Raids: /crap dungeons")
+    self.z60Btn = Item("60er-Scan", -78, function() ns.WhoZone60Step() end,
+        "/who auf alle Level-60-Spieler in einem Endgame-Gebiet (Silithus, Winterquell, Pestländer ...).\nIst ein Gebiet voll (50 Treffer), werden die Klassen einzeln abgefragt.")
+    self.scanBtn = Item("Who-Scan", -104, function() ns.WhoScanStep() end,
+        "/who nach Levelbereich bzw. Klasse.")
+    self.capBtn = Item("Städte", -130, function() ns.WhoCapitalStep() end,
+        "/who auf alle Level-60-Spieler in einer Hauptstadt (Orgrimmar, Unterstadt, Donnerfels, Sturmwind, Eisenschmiede, Darnassus).\nAn/aus im Weiter-Scannen-Rundlauf: /crap staedte")
+    f:HookScript("OnHide", function() menu:Hide() end)
 
     local expBtn = Btn("Export", 64, "quiet")
     expBtn:SetPoint("BOTTOMRIGHT", -14, 14)
@@ -1069,27 +1089,35 @@ function UI:UpdateRows()
 end
 
 -- Normale Beschriftung der Scan-Knoepfe
+function UI:ToggleScanMenu()
+    if not self.scanMenu then return end
+    self.scanMenu:SetShown(not self.scanMenu:IsShown())
+    if self.scanMenu:IsShown() then self:UpdateScanLabels() end
+end
+function UI:HideScanMenu() if self.scanMenu then self.scanMenu:Hide() end end
+
 function UI:UpdateScanLabels()
-    self.pendBtn:SetText("Unzugeordnet: " .. ns.PendingCount())
+    if self.nextLbl and ns.SmartScanLabel then
+        local ok, txt = pcall(ns.SmartScanLabel)
+        self.nextLbl:SetText(ok and ("als Nächstes: " .. txt) or "")
+    end
+    if self.nextBtn and not self.cdActive then self.nextBtn:SetText("Weiter scannen") end
+    self.pendBtn:SetText("Rekrutierer zuordnen (" .. ns.PendingCount() .. ")")
     if ns.scanSteps then
-        self.scanBtn:SetText(string.format("Who %d/%d", ns.scanIndex or 1, #ns.scanSteps))
+        self.scanBtn:SetText(string.format("Level/Klasse %d/%d", ns.scanIndex or 1, #ns.scanSteps))
     end
     if ns.ZoneScanList then
         local zl = ns.ZoneScanList()
         local zi = math.min(ns.zoneIndex or 1, #zl)
-        self.zoneBtn:SetText("Inst: " .. (zl[zi] and zl[zi].key or "?") .. " " .. zi .. "/" .. #zl)
+        self.zoneBtn:SetText("Instanz: " .. (zl[zi] and zl[zi].key or "?") .. " (" .. zi .. "/" .. #zl .. ")")
     end
     if ns.CurrentCapital and self.capBtn then
         local z, split = ns.CurrentCapital()
-        z = z or "?"
-        if #z > 10 then z = z:sub(1, 9) .. "." end
-        self.capBtn:SetText((split and "Stadt+: " or "Stadt: ") .. z)
+        self.capBtn:SetText("Hauptstadt: " .. (z or "?") .. (split and " (Klassen)" or ""))
     end
     if ns.CurrentZone60 then
         local z, split = ns.CurrentZone60()
-        z = z or "?"
-        if #z > 12 then z = z:sub(1, 11) .. "." end
-        self.z60Btn:SetText((split and "60er+: " or "60er: ") .. z)
+        self.z60Btn:SetText("60er-Gebiet: " .. (z or "?") .. (split and " (Klassen)" or ""))
     end
 end
 
@@ -1098,7 +1126,7 @@ function UI:UpdateCooldowns()
     if not self.scanBtn then return end
     local rem = ns.WhoCooldown()
     local btns = {
-        { self.scanBtn, "Who" }, { self.zoneBtn, "Inst" }, { self.z60Btn, "60er" },
+        { self.nextBtn, "Weiter scannen" }, { self.scanBtn, "Who" }, { self.zoneBtn, "Inst" }, { self.z60Btn, "60er" },
         { self.capBtn, "Stadt" }, { self.pendBtn, "Zuordnen" }, { self.dWho, "/who" },
     }
     if rem > 0 then
@@ -1456,8 +1484,10 @@ SlashCmdList["CBAS"] = function(msg)
                     ns.Geier.VERDICT_TEXT[v] or v, reason or ""))
             end
         end
+    elseif cmd == "mage" or cmd == "magier" then
+        ns.Suite:Toggle("mage")
     elseif cmd == "scan" then
-        ns.WhoScanStep()
+        ns.SmartScanStep()
     elseif cmd == "raidscan" then
         ns.WhoZoneStep()
     elseif cmd == "zonescan" or cmd == "60" then

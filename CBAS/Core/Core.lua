@@ -2,7 +2,7 @@
 local ADDON, ns = ...
 _G.CBAS = ns
 
-ns.VERSION = "2.26.0"
+ns.VERSION = "2.27.0"
 local PREFIX = "|cff33ccffCBAS|r: "
 
 function ns.Print(...)
@@ -725,6 +725,72 @@ function ns.WhoScanStep()
         if ns.scanIndex > #ns.scanSteps then ns.scanIndex = 1 end
         ns.RefreshUI()
     end
+end
+
+---------------------------------------------------------------------------
+-- "Weiter scannen": ein Knopf, CBAS waehlt die naechste sinnvolle /who-Abfrage (seit 2.27.0)
+-- Reihenfolge: offene Teilabfragen (volle Gebiete) zuerst, dann reihum
+-- Unzugeordnete Rekrutierer -> Instanz -> 60er-Gebiet -> Level/Klasse -> Hauptstadt.
+---------------------------------------------------------------------------
+ns.SMART_ORDER = { "pending", "zone", "z60", "who", "cap" }
+ns.smartIndex = ns.smartIndex or 1
+
+local function ModeAvailable(mode)
+    if mode == "pending" then return ns.PendingCount() > 0 end
+    if mode == "zone" then return ns.WhoZoneStep ~= nil end
+    if mode == "z60" then return ns.WhoZone60Step ~= nil end
+    if mode == "cap" then return ns.WhoCapitalStep ~= nil and ns.db.settings.scanCapitals ~= false end
+    return true
+end
+
+-- welcher Scan kommt als naechstes? (ohne etwas zu senden)
+function ns.SmartScanMode()
+    if ns.zone60Queue and #ns.zone60Queue > 0 then return "z60" end
+    if ns.capQueue and #ns.capQueue > 0 then return "cap" end
+    local n = #ns.SMART_ORDER
+    for k = 0, n - 1 do
+        local i = ((ns.smartIndex - 1 + k) % n) + 1
+        if ModeAvailable(ns.SMART_ORDER[i]) then return ns.SMART_ORDER[i], i end
+    end
+    return "who"
+end
+
+ns.SMART_STEP = {
+    pending = function() ns.ResolveNextPending() end,
+    zone = function() ns.WhoZoneStep() end,
+    z60 = function() ns.WhoZone60Step() end,
+    who = function() ns.WhoScanStep() end,
+    cap = function() ns.WhoCapitalStep() end,
+}
+
+-- kurze Beschreibung fuer den Knopf
+function ns.SmartScanLabel(mode)
+    mode = mode or ns.SmartScanMode()
+    if mode == "pending" then return "Rekrutierer zuordnen (" .. ns.PendingCount() .. ")" end
+    if mode == "zone" and ns.ZoneScanList then
+        local zl = ns.ZoneScanList()
+        local zi = math.min(ns.zoneIndex or 1, #zl)
+        return "Instanz: " .. (zl[zi] and zl[zi].key or "?")
+    end
+    if mode == "z60" and ns.CurrentZone60 then
+        local z, split = ns.CurrentZone60()
+        return "60er: " .. (z or "?") .. (split and " (Klassen)" or "")
+    end
+    if mode == "cap" and ns.CurrentCapital then
+        local z, split = ns.CurrentCapital()
+        return "Stadt: " .. (z or "?") .. (split and " (Klassen)" or "")
+    end
+    if not ns.scanSteps then ns.BuildScanSteps() end
+    return "Level/Klasse " .. (ns.scanIndex or 1) .. "/" .. #ns.scanSteps
+end
+
+function ns.SmartScanStep()
+    local mode, i = ns.SmartScanMode()
+    local before = ns.lastWho
+    ns.SMART_STEP[mode]()
+    -- nur weiterruecken, wenn die Abfrage wirklich raus ist (sonst /who-Sperre)
+    if ns.lastWho ~= before and i then ns.smartIndex = (i % #ns.SMART_ORDER) + 1 end
+    ns.RefreshUI()
 end
 
 function ns.WhoGuild(key)

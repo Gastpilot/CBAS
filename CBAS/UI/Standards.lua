@@ -51,6 +51,7 @@ function STD.ShowMenu(owner)
         root:CreateButton("Geierwacht", function() S:Toggle("geier") end)
         root:CreateButton("Can I have it", function() S:Toggle("cihi") end)
         root:CreateButton("Flipper", function() S:Toggle("flipper") end)
+        if ns.Mage and ns.Mage.IsMage() then root:CreateButton("Mage-Dienste", function() S:Toggle("mage") end) end
         root:CreateDivider()
         root:CreateTitle("Optionen")
         root:CreateCheckbox("Länderflaggen im Chat", function() return IsOn("chatFlags", true) end,

@@ -7,7 +7,7 @@ local ADDON, ns = ...
 local H = {}
 ns.Home = H
 
-local ROWS, ROW_H = 6, 60
+local ROWS, ROW_H = 7, 52
 local W = 828                      -- nutzbare Breite (Panel 860 - Raender)
 local unpack = unpack or table.unpack
 
@@ -185,7 +185,71 @@ local function UpdateRow()
         detail = "Andere CBAS-Spieler in Gilde und Gruppe melden neue Versionen automatisch.", target = "settings", cat2 = "general" }
 end
 
-local SOURCES = { GroupRow, AHRow, CIHIRow, GScoutRow, LayerRow, UpdateRow }
+-- Mage-Dienste: wartende Kunden ganz oben, sonst Einnahmen und Vorrat (nur auf Magiern)
+local function MageRow()
+    local MG = ns.Mage
+    if not (MG and MG.IsMage()) then return nil end
+    MG.Prune()
+    local open = {}
+    for _, c in ipairs(MG.customers) do if c.state ~= "done" then open[#open + 1] = c end end
+    local r = { cat = "Mage-Dienste", target = "mage" }
+    if #open > 0 then
+        r.prio, r.state = 330, "warn"
+        r.title = #open == 1 and "1 Kunde wartet" or (#open .. " Kunden warten")
+        local t = {}
+        for i = 1, math.min(3, #open) do
+            local c = open[i]
+            local what = c.kind == "port" and ("Portal" .. (c.dest and (" " .. c.dest:upper()) or "")) or (c.kind == "food" and "Essen" or "Wasser")
+            t[#t + 1] = c.full .. Hx("dim") .. " (" .. what .. ")|r"
+        end
+        r.detail = table.concat(t, "  ·  ") .. Hx("dim") .. "  –  Autopilot-Taste drücken|r"
+        return r
+    end
+    local g, n = MG.Today()
+    local st = MG.Stock()
+    r.prio, r.state = 60, n > 0 and "ok" or "info"
+    r.title = n > 0 and ("Heute " .. MG.Money(g) .. " aus " .. n .. (n == 1 and " Verkauf" or " Verkäufen")) or "Bereit für Kunden"
+    r.detail = string.format("Wasser %.1f Stacks · Essen %.1f Stacks", st.water / MG.STACK, st.food / MG.STACK)
+        .. (#st.portals > 0 and (" · Runen " .. st.runes) or "") .. " · Kunden erscheinen hier automatisch."
+    return r
+end
+
+-- Verbundene Addons: was CBAS nutzt und ob etwas fehlt
+local function Loaded(name)
+    local f = (C_AddOns and C_AddOns.IsAddOnLoaded) or IsAddOnLoaded
+    if not f then return false end
+    local ok, v = pcall(f, name)
+    return ok and v and true or false
+end
+H.Loaded = Loaded
+
+local function AddonsRow()
+    local F = ns.Flip
+    local atr = F and F.HasAuctionator and F.HasAuctionator() or Loaded("Auctionator")
+    local tsm = F and F.HasTSM and F.HasTSM() or Loaded("TradeSkillMaster")
+    local lfg = Loaded("LFGForever")
+    local parts, have = {}, 0
+    local function add(ok, name, use)
+        if ok then have = have + 1 end
+        parts[#parts + 1] = (ok and "|TInterface\\RaidFrame\\ReadyCheck-Ready:12|t " .. Hx("ok") or "|TInterface\\RaidFrame\\ReadyCheck-NotReady:12|t " .. Hx("dim")) .. name .. "|r" .. Hx("dim") .. " " .. use .. "|r"
+    end
+    add(atr, "Auctionator", "(Preise, Tipps)")
+    add(tsm, "TSM", "(Preise)")
+    add(lfg, "LFGForever", "(Gruppensuche)")
+    local r = { cat = "Addons", target = "flipper" }
+    if not atr and not tsm then
+        r.prio, r.state = 150, "warn"
+        r.title = "Kein Preis-Addon aktiv"
+        r.detail = "Der Flipper braucht Auctionator oder TSM für Preise.  " .. table.concat(parts, "  ")
+    else
+        r.prio, r.state = 20, "ok"
+        r.title = have .. " von 3 verbunden"
+        r.detail = table.concat(parts, "   ")
+    end
+    return r
+end
+
+local SOURCES = { GroupRow, AHRow, MageRow, CIHIRow, GScoutRow, LayerRow, UpdateRow, AddonsRow }
 
 function H.Collect()
     local list = {}

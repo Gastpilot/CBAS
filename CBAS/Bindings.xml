@@ -14,4 +14,6 @@
     <Binding name="CBAS_TOGGLE" category="ADDONS">
         CBAS.Suite:Toggle()
     </Binding>
+    <Binding name="CLICK CBASMageButton:LeftButton" category="ADDONS">
+    </Binding>
 </Bindings>

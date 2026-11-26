@@ -1,4 +1,4 @@
-Craphunts Blacklisted Addon Suite (CBAS) 2.26.0 – Addon-Suite für WoW: Forever
+Craphunts Blacklisted Addon Suite (CBAS) 2.27.0 – Addon-Suite für WoW: Forever
 =====================================================
 
 AUFBAU DER SUITE (neu seit 2.25.0)
@@ -13,11 +13,13 @@ AUFBAU DER SUITE (neu seit 2.25.0)
   * GScout        - die Gildendatenbank: "Gilden" und "Gildenlose"
   * Geierwacht    - Loot-Kontrolle: "Spieler & Runs" und "Can I have it"
   * Flipper       - AH-Flips und Händler-Flips planen (mit Auctionator/TSM)
+  * Mage-Dienste  - Portale, Wasser & Essen verkaufen (neu in 2.27.0, siehe unten)
   * Einstellungen - links unten: nach Bereichen sortiert (Allgemein, GScout,
-                    Geierwacht, Flipper, Chat & Flaggen, Layer, Daten), jede
+                    Geierwacht, Flipper, Mage-Dienste, Chat & Flaggen, Layer,
+                    Daten), jede
                     Option als Schalter mit kurzer Erklärung
 - Oben in der Kopfzeile: Name der Ansicht, dein Layer und die Welt.
-- Knöpfe haben eine Rangordnung: pink = Haupt-Aktion (z. B. Who-Scan, Suchen,
+- Knöpfe haben eine Rangordnung: pink = Haupt-Aktion (z. B. Weiter scannen, Suchen,
   Einstellen), grau = normal, nur Text = Werkzeug (Export, Chat-Log, Kurve).
 - Das Fenster merkt sich die zuletzt geöffnete Ansicht und seine Position.
 - Verschieben: an jeder freien Stelle (oder an der Titelleiste) mit der linken
@@ -26,7 +28,7 @@ AUFBAU DER SUITE (neu seit 2.25.0)
   wachsen mit), Rechtsklick auf den Griff = Originalgröße. Alternativ "-"/"+" in
   den Einstellungen oder /crap groesse 130 (60 bis 200 %). Wird gespeichert.
 - Knöpfe mit Wartezeit sind gesperrt und zählen im Knopf herunter:
-  Who, Instanz, 60er, Zuordnen, /who Gilde (5 s) und "In Gruppe melden" (10 s).
+  Weiter scannen, /who Gilde (5 s) und "In Gruppe melden" (10 s).
 - /crap lage, /crap gscout bzw. /crap settings öffnen direkt die jeweilige Ansicht.
 
 GILDENLOS (Unteransicht von GScout)
@@ -202,6 +204,35 @@ LEICHTGEWICHTIG BLEIBEN
 - Wer es noch leichter will: Einstellungen > GScout > "Namensplaketten
   mitlesen" aus - in vollen Städten der größte Dauerverbraucher.
 
+MAGE-DIENSTE (neu in 2.27.0, nur auf Magiern)
+  Portale, Wasser und Essen verkaufen - so automatisch, wie Blizzard es erlaubt.
+- Kunden findet CBAS selbst im Chat (Handel, Allgemein, Sagen, Schreien,
+  Flüstern, Gilde): "wtb port to IF", "suche Portal nach Orgrimmar", "need water",
+  "brauche Essen" ... Wer selbst verkauft ("WTS port"), wird ignoriert. Kunden
+  verfallen nach 5 Minuten, höchstens 20 auf einmal. Ein leiser Ton meldet neue.
+- AUTOPILOT: eine Taste (oder der pinke Knopf im Tab) = der nächste Schritt:
+    Kunde anschreiben (Text landet in der Chat-Eingabe, Enter drückst du)
+    -> einladen -> Handel öffnen -> Ware in den Handel legen -> annehmen, sobald
+    das Gold drin ist -> Portal öffnen -> "Fertig": Gruppe verlassen.
+  Ohne Kunden: Wasser/Essen auf Vorrat herbeizaubern (6 bzw. 2 Stacks), danach
+  Werbung für den Handelskanal vorbereiten (höchstens alle 90 s).
+  Taste belegen: Tastenbelegung > AddOns > CBAS > "Mage-Dienste: nächster Schritt".
+- Portal erst nach Bezahlung (Standard) - umstellbar unter Einstellungen >
+  Mage-Dienste. Fehlt die Rune der Portale, sagt CBAS Bescheid.
+- Im Tab: Kundenliste (Klick wählt; "Art" schaltet Portal/Wasser/Essen um,
+  Kürzel wie IF/ORG setzen das Ziel; x entfernt), Vorrat, Preise (Portal, Wasser
+  und Essen je Stack, Stacks je Verkauf), Sprache der Texte (Deutsch/Englisch),
+  Einnahmen heute. Die Lage zeigt wartende Kunden ganz oben.
+- Einen Handel, den jemand von sich aus öffnet, nimmt CBAS als Wasser-Kunden auf.
+- Was CBAS NICHT tut (Blizzard-Regeln): ohne Tastendruck zaubern, handeln,
+  einladen oder Chat-Nachrichten abschicken.
+- Neue Dateien: nach dem Update einmal WoW neu starten.
+
+VERBUNDENE ADDONS (Lage)
+  Die Lage zeigt, welche Addons CBAS nutzt: Auctionator (Preise, Claude-Tipps),
+  TSM (Preise), LFGForever (Gruppensuche). Fehlt ein Preis-Addon, rückt die Zeile
+  nach oben.
+
 CAN I HAVE IT (Geierwacht > "Can I have it", /crap cihi)
   Das Gegenstück zur Geierwacht: die Geierwacht bewertet die anderen, "Can I
   have it" wendet DIESELBEN Regeln auf dich an und sagt dir beim Würfelfenster,
@@ -358,7 +389,8 @@ GILDENINFOS (alles, was das Spiel hergibt)
   die zeigt das Spiel nur Mitgliedern.
 
 RAIDS & DUNGEONS
-- "Instanz-Scan" (unten): jeder Klick = /who auf einen Raid oder Dungeon.
+- Instanz-Scan (in "Weiter scannen" enthalten, gezielt unter "Gezielt ..."):
+  jeder Schritt = /who auf einen Raid oder Dungeon.
   Raids: MC, Ony, BWL, ZG, AQ20, AQ40, Naxx.
   Dungeons: UBRS/LBRS, BRD, Strat, Scholo, Düsterbruch, Versunkener Tempel, Maraudon,
   Zul'Farrak, Uldaman, Kloster, Hügel/Kral der Klingenhauer, Gnomeregan,
@@ -425,17 +457,24 @@ DATENAUSTAUSCH IN DER GRUPPE (SYNC)
 - Ausschalten: /crap sync
 
 TIPPS
-- "Who-Scan" unten links: jeder Klick fragt einen Levelbereich bzw. eine Klasse
-  auf Max-Level ab. Ein paar Mal am Abend durchklicken füllt die Datenbank schnell.
-- "Unzugeordnet": Rekrutierungen ohne erkennbaren Gildennamen. Klick = /who auf
-  den Absender, danach wird die Nachricht der richtigen Gilde zugeordnet.
+- "Weiter scannen" unten links (seit 2.27.0 statt fünf Scan-Knöpfen): jeder Klick
+  schickt die nächste sinnvolle /who-Abfrage. CBAS wechselt selbst ab:
+  Rekrutierer zuordnen -> Instanz -> 60er-Gebiet -> Level/Klasse -> Hauptstadt.
+  Volle Gebiete werden zuerst nach Klassen fertig abgefragt. Daneben steht, was
+  als Nächstes kommt. Ein paar Mal am Abend durchklicken füllt die Datenbank schnell.
+- "Gezielt ..." daneben öffnet ein Menü mit den einzelnen Scans (Rekrutierer
+  zuordnen, Instanz, 60er-Gebiet, Level/Klasse, Hauptstadt), falls du gezielt
+  etwas abfragen willst.
+- "Rekrutierer zuordnen": Rekrutierungen ohne erkennbaren Gildennamen. Klick = /who
+  auf den Absender, danach wird die Nachricht der richtigen Gilde zugeordnet.
 - Mit Wertung, Favorit, Blacklist und Notizen behältst du den Überblick.
 - Im Tooltip eines Spielers siehst du sofort, was du über seine Gilde weißt.
 - "Export (CSV)" -> Strg+A, Strg+C, in Excel/Google Sheets einfügen.
 
 BEFEHLE
 /crap                 Fenster öffnen/schließen
-/crap scan            nächster Who-Scan-Schritt
+/crap scan            Weiter scannen (nächste sinnvolle /who-Abfrage)
+/crap mage            Mage-Dienste öffnen
 /crap raidscan        nächster Raid-Scan-Schritt
 /crap 60              nächster 60er-Gebiets-Scan
 /crap stadt           nächster Hauptstadt-Scan (60er)

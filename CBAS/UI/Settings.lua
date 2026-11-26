@@ -65,6 +65,27 @@ local CATS = {
         { key = "flipAutoVendor", label = "Markierte Händler-Flips automatisch verkaufen", desc = "Beim Händler werden nur Sachen verkauft, die du im Flipper markiert hast." },
     },
     {
+        id = "mage", name = "Mage-Dienste",
+        { section = "Kunden" },
+        { label = "Chat nach Kunden durchsuchen", desc = "Erkennt „wtb port“, „suche Portal nach IF“, „need water“ ... in Handel, Allgemein, Sagen, Schreien, Flüstern und Gilde. Nur auf Magiern.",
+          get = function() return ns.Mage and ns.Mage.db().listen end,
+          set = function(v) if ns.Mage then ns.Mage.db().listen = v end end },
+        { label = "Portal erst nach Bezahlung", desc = "Der Autopilot öffnet erst den Handel und zaubert das Portal, sobald das Gold da ist. Aus: erst Portal, dann bezahlen.",
+          get = function() return ns.Mage and ns.Mage.db().payFirst end,
+          set = function(v) if ns.Mage then ns.Mage.db().payFirst = v end end },
+        { section = "Hinweis" },
+        { build = function(page, y)
+            local T = ns.T
+            local d = page:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+            d:SetPoint("TOPLEFT", 0, y)
+            d:SetWidth(CW)
+            d:SetJustifyH("LEFT")
+            d:SetTextColor(T.C.dim[1], T.C.dim[2], T.C.dim[3])
+            d:SetText("Preise, Stacks je Verkauf und die Sprache der Texte stellst du direkt im Tab Mage-Dienste ein.\nDie Autopilot-Taste belegst du unter Tastenbelegung > AddOns > CBAS > „Mage-Dienste: nächster Schritt“.")
+            return y - 50
+        end },
+    },
+    {
         id = "chat", name = "Chat & Flaggen",
         { section = "Chat" },
         { build = function(page, y) return ns.ChatFlags and ns.ChatFlags.BuildSettings(page, y, CW) or y end },
