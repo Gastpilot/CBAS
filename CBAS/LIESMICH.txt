@@ -1,4 +1,4 @@
-Craphunts Blacklisted Addon Suite (CBAS) 2.28.0 – Addon-Suite für WoW: Forever
+Craphunts Blacklisted Addon Suite (CBAS) 2.28.1 – Addon-Suite für WoW: Forever
 =====================================================
 
 AUFBAU DER SUITE (neu seit 2.25.0)
@@ -242,9 +242,19 @@ TRACKER (Lage > Tracker, neu in 2.28.0, /crap tracker)
   * Mage: Wasser-Vorrat aufgefüllt (nur auf Magiern)
   * Raids (Woche): alle Raids, für die du eine ID hast, mit Fortschritt
     ("3/8") und Reset; erledigt, wenn alle Bosse liegen. ZG/AQ20 haben ihren
-    eigenen 3-Tage-Reset. Unten rechts weitere Raids zum Verfolgen anklicken.
+    eigenen 3-Tage-Reset. Auch neue Forever-Raids erscheinen von selbst.
+    Unten rechts weitere Raids zum Verfolgen anklicken.
+  * Beutebucht-Weekly (ab Stufe 60): "In Demand - Ancient Elven Curiosities"
+    bei Pix Xizzix in Beutebucht - je ein Teil von den Endbossen in Düsterbruch
+    Ost, West und Nord, Belohnung 10 bis 100 Gold. Zeigt "noch nicht
+    angenommen", "im Questlog" oder erledigt.
+  * JEDE Daily oder Weekly, die du annimmst, landet von selbst im Tracker -
+    das Spiel sagt CBAS, ob sie täglich oder wöchentlich ist. Abgehakt wird,
+    sobald du sie abgibst. So sind auch neue Forever-Quests sofort drin.
 - Eigene Aufgaben: unten eintragen, "Täglich"/"Wöchentlich" wählen,
   "Hinzufügen" (oder Enter). Klick auf eine Zeile hakt ab, x löscht.
+  Statt Text geht auch eine Quest-ID oder ein Wowhead-Link (".../quest=96076")
+  - dann hakt das Spiel sie selbst ab.
   Höchstens 20. Die Liste gilt für alle Charaktere, die Haken je Charakter.
 - Reset: täglich bzw. wöchentlich zum Server-Reset (wie die Quests).
 

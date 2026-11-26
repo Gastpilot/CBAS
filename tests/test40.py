@@ -46,3 +46,37 @@ print("Scan-Ziel +:", run('for _,f in ipairs(FRAMES) do end'), ev(TR+'.db().scan
 print("Seitenleiste Lage:", [ev('CBAS.Suite.subBtns.home[%d].label:GetText()'%i) for i in (1,2)])
 print("Lage:", run('CBAS.Suite:Select("home")'), [ev('CBAS.Home.rows[%d].r and CBAS.Home.rows[%d].r.cat'%(i,i)) for i in range(1,8)])
 print("Grenze 20:", run('for i=1,30 do '+TR+'.AddTask("t"..i,"day") end'), ev('#'+TR+'.db().tasks'))
+# 2.28.1: Quests (Beutebucht-Weekly, angenommene Daily/Weekly, Quest-ID im Feld), neue Forever-Raids
+la.execute('''
+LEVEL=60 UnitLevel=function() return LEVEL end
+DONEQ={} LOGQ={} INFO={}
+C_QuestLog={IsQuestFlaggedCompleted=function(id) return DONEQ[id] or false end,
+  GetLogIndexForQuestID=function(id) return LOGQ[id] end,
+  GetInfo=function(i) return INFO[i] end,
+  GetTitleForQuestID=function(id) return ({[96076]="In Demand - Ancient Elven Curiosities",[555]="Fische für Booty Bay"})[id] end}
+table.insert(SAVED,{"Hyjal Summit",9,5*86400,9,true,false,0,true,20,"20",6,2})
+''')
+la.execute('local t='+TR+'.db() t.tasks={} '+TR+'.DirtyRaids()')
+w=[x for x in items()[1]]
+print("Woche (60):", [x for x in w if "Elven" in x[0] or "Hyjal" in x[0]])
+la.execute('LOGQ[96076]=7')
+print("im Log:", [x for x in items()[1] if "Elven" in x[0]])
+la.execute('DONEQ[96076]=true')
+print("abgegeben:", [x for x in items()[1] if "Elven" in x[0]])
+la.execute('LEVEL=40')
+print("Stufe 40:", [x for x in items()[1] if "Elven" in x[0]])
+la.execute('LEVEL=60')
+# Daily angenommen -> automatisch im Tracker
+la.execute('LOGQ[555]=3 INFO[3]={frequency=1} FIRE("QUEST_ACCEPTED",555)')
+print("Daily angenommen:", [x for x in items()[0] if "Fische" in x[0]])
+la.execute('FIRE("QUEST_ACCEPTED",3,555)')
+print("doppelt?:", len([x for x in items()[0] if "Fische" in x[0]]))
+la.execute('LOGQ[777]=4 INFO[4]={frequency=0} FIRE("QUEST_ACCEPTED",777)')
+print("normale Quest ignoriert:", ev('#'+TR+'.db().tasks'))
+la.execute('DONEQ[555]=true')
+print("Daily abgegeben:", [x for x in items()[0] if "Fische" in x[0]])
+print("Klick auf Quest-Aufgabe ändert nichts:", run('local t='+TR+'.FindQuestTask(555) local _,c='+TR+'.db() '+TR+'.UI:Refresh() for _,x in ipairs('+TR+'.UI.day.rows) do if x.e and x.e.task==t then x._scripts.OnClick() end end assert(not c.done[t.id])'))
+# Quest-ID / Wowhead-Link im Eingabefeld
+print("Link:", [x for x in la.eval('function() return {'+TR+'.AddTask("https://www.wowhead.com/forever/quest=12345/irgendwas","week")} end')().values()][:1], ev(TR+'.FindQuestTask(12345).text'))
+print("feste Quest abgelehnt:", [x for x in la.eval('function() return {'+TR+'.AddTask("96076","week")} end')().values()])
+print("Ansicht:", run(TR+'.UI:Refresh()'), ev(TR+'.UI.week.big:GetText()'))

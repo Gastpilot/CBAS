@@ -2,7 +2,9 @@
 -- Automatisch (hakt sich selbst ab):
 --   Heute: Auktionshaus besucht, GScout-Scans (Ziel einstellbar), Mage-Vorrat (nur Magier)
 --   Woche: Raid-IDs aus dem Spiel (Fortschritt "3/10", ZG/AQ20 mit eigenem 3-Tage-Reset)
--- Eigene Aufgaben: Text + taeglich/woechentlich, Abhaken per Klick.
+--   Quests: die Forever-Weekly in Booty Bay (Pix Xizzix, ab 60) und JEDE angenommene
+--   Daily/Weekly (das Spiel meldet, ob taeglich oder woechentlich) - abgehakt ueber das Spiel.
+-- Eigene Aufgaben: Text (oder Quest-ID / Wowhead-Link) + taeglich/woechentlich.
 -- Zurueckgesetzt wird zum Server-Reset (GetQuestResetTime / C_DateAndTime.GetSecondsUntilWeeklyReset).
 -- Haken und Zaehler gelten je Charakter, die Liste eigener Aufgaben fuer alle Charaktere.
 -- Leichtgewichtig: Raid-IDs 10 s zwischengespeichert, Ansicht rechnet nur, wenn sie offen ist.
@@ -81,12 +83,76 @@ function TR.db()
     return t, c
 end
 
-function TR.AddTask(text, period)
+---------------------------------------------------------------------------
+-- Quests: fest eingebaute Forever-Quests und Abfragen beim Spiel
+---------------------------------------------------------------------------
+TR.QUESTS = {
+    -- WoW: Forever, seit 13.11.2026: Pix Xizzix, Beutebucht (28.4, 75.8); je ein Teil aus Duesterbruch Ost/West/Nord
+    { quest = 96076, period = "week", minLevel = 60, text = "Beutebucht-Weekly (Pix Xizzix)",
+      hint = "Je ein Teil vom Endboss in Düsterbruch Ost, West und Nord (Felvine Seed, Ancient Memento, Earthstone Diamond Pinky Ring). West und Nord brauchen den Mondsichelschlüssel. Belohnung: Beutel mit 10 bis 100 Gold." },
+}
+
+local function QuestDone(id)
+    local f = C_QuestLog and C_QuestLog.IsQuestFlaggedCompleted or IsQuestFlaggedCompleted
+    if not f then return false end
+    local ok, v = pcall(f, id)
+    return ok and v and true or false
+end
+TR.QuestDone = QuestDone
+
+local function QuestInLog(id)
+    if C_QuestLog and C_QuestLog.GetLogIndexForQuestID then
+        local ok, i = pcall(C_QuestLog.GetLogIndexForQuestID, id)
+        return ok and i ~= nil
+    end
+    return false
+end
+
+function TR.QuestTitle(id)
+    if C_QuestLog and C_QuestLog.GetTitleForQuestID then
+        local ok, t = pcall(C_QuestLog.GetTitleForQuestID, id)
+        t = ok and ns.S(t)
+        if type(t) == "string" and t ~= "" then return t end
+    end
+end
+
+-- "96076", "quest=96076", Wowhead-Link -> 96076
+function TR.ParseQuestID(text)
+    if type(text) ~= "string" then return nil end
+    local id = text:match("quest=(%d+)") or text:match("^%s*(%d%d%d+)%s*$")
+    return tonumber(id)
+end
+
+-- taeglich/woechentlich laut Spiel (nil = keine Wiederholungsquest)
+function TR.QuestPeriod(id)
+    if not (C_QuestLog and C_QuestLog.GetLogIndexForQuestID and C_QuestLog.GetInfo) then return nil end
+    local ok, i = pcall(C_QuestLog.GetLogIndexForQuestID, id)
+    if not ok or not i then return nil end
+    local ok2, info = pcall(C_QuestLog.GetInfo, i)
+    if not ok2 or type(info) ~= "table" then return nil end
+    local f = tonumber(ns.S(info.frequency))
+    if f == 1 then return "day" end
+    if f == 2 then return "week" end
+    if f == 3 then return "week" end   -- ResetByScheduler: wie woechentlich behandeln
+    return nil
+end
+
+function TR.FindQuestTask(id)
+    for _, task in ipairs(TR.db().tasks) do if task.quest == id then return task end end
+end
+
+function TR.AddTask(text, period, questID)
     local t = TR.db()
     text = (text or ""):gsub("^%s+", ""):gsub("%s+$", "")
+    questID = questID or TR.ParseQuestID(text)
+    if questID then
+        for _, q in ipairs(TR.QUESTS) do if q.quest == questID then return nil, "Diese Quest ist schon fest im Tracker." end end
+        if TR.FindQuestTask(questID) then return nil, "Diese Quest steht schon im Tracker." end
+        if text == "" or TR.ParseQuestID(text) then text = TR.QuestTitle(questID) or ("Quest " .. questID) end
+    end
     if text == "" then return nil, "Bitte einen Text eingeben." end
     if #t.tasks >= MAX_TASKS then return nil, "Höchstens " .. MAX_TASKS .. " eigene Aufgaben." end
-    local task = { id = t.nextId, text = text:sub(1, 60), period = period == "week" and "week" or "day" }
+    local task = { id = t.nextId, text = text:sub(1, 60), period = period == "week" and "week" or "day", quest = questID }
     t.nextId = t.nextId + 1
     table.insert(t.tasks, task)
     TR.Changed()
@@ -126,7 +192,8 @@ local function RaidByName(name)
     end
 end
 
--- key -> { done, total, reset (Sekunden) }
+-- key -> { done, total, reset (Sekunden), name }; bekannte Raids unter ihrem Kuerzel (MC, BWL ...),
+-- neue Forever-Raids (z. B. Hyjal) unter ihrem Namen aus dem Spiel
 function TR.Lockouts()
     if GetTime() - raidCache.t < 10 then return raidCache.list end
     local list = {}
@@ -134,10 +201,13 @@ function TR.Lockouts()
         local ok, n = pcall(GetNumSavedInstances)
         for i = 1, (ok and tonumber(n) or 0) do
             local ok2, name, _, reset, _, locked, _, _, isRaid, _, _, numEnc, encProg = pcall(GetSavedInstanceInfo, i)
-            name = ns.S(name)
-            local inst = ok2 and RaidByName(name)
-            if inst and locked then
-                list[inst.key] = { done = tonumber(ns.S(encProg)) or 0, total = tonumber(ns.S(numEnc)) or 0, reset = tonumber(ns.S(reset)) or 0 }
+            name = ok2 and ns.S(name)
+            if ok2 and locked and type(name) == "string" then
+                local inst = RaidByName(name)
+                if inst or ns.S(isRaid) then
+                    list[inst and inst.key or name] = { done = tonumber(ns.S(encProg)) or 0, total = tonumber(ns.S(numEnc)) or 0,
+                        reset = tonumber(ns.S(reset)) or 0, name = inst and inst.de or name, known = inst ~= nil }
+                end
             end
         end
     end
@@ -174,25 +244,58 @@ function TR.Items()
                 detail = string.format("%.1f/%d Stacks", stacks, m.keepWater) }
         end
     end
-    -- Woche: Raids (gemerkte + alle mit aktueller ID)
-    local lock = TR.Lockouts()
-    for _, inst in ipairs(ns.INSTANCES or {}) do
-        if inst.kind == "raid" and (c.raids[inst.key] or lock[inst.key]) then
-            local l = lock[inst.key]
-            local done = l and l.total > 0 and l.done >= l.total
-            local det
-            if l then
-                det = (l.total > 0 and (l.done .. "/" .. l.total) or "ID") .. " · Reset " .. Dur(l.reset)
-            else
-                det = "offen"
+    -- Quests: fest eingebaute (ab Mindeststufe)
+    local level = UnitLevel and tonumber(ns.S(UnitLevel("player"))) or 0
+    for _, q in ipairs(TR.QUESTS) do
+        if level >= (q.minLevel or 0) then
+            local done = QuestDone(q.quest)
+            local e = { id = "q" .. q.quest, text = TR.QuestTitle(q.quest) or q.text, auto = true, done = done, questHint = q.hint }
+            if not done then
+                e.partial = QuestInLog(q.quest)
+                e.detail = e.partial and "im Questlog" or "noch nicht angenommen"
             end
-            week[#week + 1] = { id = "raid:" .. inst.key, raid = inst.key, text = inst.de, auto = true, done = done and true or false,
-                partial = l and not done, detail = det }
+            if q.period == "week" then week[#week + 1] = e else day[#day + 1] = e end
         end
     end
-    -- eigene Aufgaben
+    -- Woche: Raids (gemerkte + alle mit aktueller ID)
+    local lock = TR.Lockouts()
+    local function RaidEntry(key, label, l)
+        local done = l and l.total > 0 and l.done >= l.total
+        local det
+        if l then
+            det = (l.total > 0 and (l.done .. "/" .. l.total) or "ID") .. " · Reset " .. Dur(l.reset)
+        else
+            det = "offen"
+        end
+        return { id = "raid:" .. key, raid = key, text = label, auto = true, done = done and true or false,
+            partial = l and not done, detail = det }
+    end
+    for _, inst in ipairs(ns.INSTANCES or {}) do
+        if inst.kind == "raid" and (c.raids[inst.key] or lock[inst.key]) then
+            week[#week + 1] = RaidEntry(inst.key, inst.de, lock[inst.key])
+        end
+    end
+    for key, l in pairs(lock) do
+        if not l.known then week[#week + 1] = RaidEntry(key, l.name, l) end
+    end
+    -- eigene Aufgaben (Quest-Aufgaben hakt das Spiel ab)
     for _, task in ipairs(t.tasks) do
-        local e = { id = task.id, text = task.text, task = task, done = c.done[task.id] and true or false }
+        local e = { id = task.id, text = task.text, task = task }
+        if task.quest then
+            e.auto = true
+            e.done = QuestDone(task.quest)
+            if not e.done then
+                e.partial = QuestInLog(task.quest)
+                e.detail = e.partial and "im Questlog" or "offen"
+            end
+            -- Titel nachtragen, sobald das Spiel ihn kennt
+            if task.text:match("^Quest %d+$") then
+                local title = TR.QuestTitle(task.quest)
+                if title then task.text = title:sub(1, 60); e.text = task.text end
+            end
+        else
+            e.done = c.done[task.id] and true or false
+        end
         if task.period == "week" then week[#week + 1] = e else day[#day + 1] = e end
     end
     return day, week, c
@@ -236,6 +339,15 @@ end
 ---------------------------------------------------------------------------
 -- Ereignisse und Zaehler
 ---------------------------------------------------------------------------
+-- Wiederholungsquest angenommen -> in den Tracker (Daily oder Weekly laut Spiel)
+function TR.OnQuestAccepted(id)
+    for _, q in ipairs(TR.QUESTS) do if q.quest == id then return end end
+    if TR.FindQuestTask(id) then return end
+    local period = TR.QuestPeriod(id)
+    if not period then return end
+    return TR.AddTask(TR.QuestTitle(id) or ("Quest " .. id), period, id)
+end
+
 local listeners = {}
 function TR.OnChange(fn) listeners[#listeners + 1] = fn end
 function TR.Changed() for _, fn in ipairs(listeners) do pcall(fn) end end
@@ -257,11 +369,19 @@ end
 
 local ev = CreateFrame("Frame")
 ev:RegisterEvent("PLAYER_LOGIN")
-ev:SetScript("OnEvent", function(self, event)
+ev:SetScript("OnEvent", function(self, event, a1, a2)
+    if event == "QUEST_ACCEPTED" then
+        -- Classic: (Index, questID), modern: (questID)
+        local id = tonumber(ns.S(a2)) or tonumber(ns.S(a1))
+        if id then TR.OnQuestAccepted(id) end
+        TR.Changed()
+        return
+    end
     if event == "PLAYER_LOGIN" then
         HookWho()
         if RequestRaidInfo then pcall(RequestRaidInfo) end
-        for _, e in ipairs({ "AUCTION_HOUSE_SHOW", "UPDATE_INSTANCE_INFO", "BOSS_KILL", "ENCOUNTER_END" }) do pcall(self.RegisterEvent, self, e) end
+        for _, e in ipairs({ "AUCTION_HOUSE_SHOW", "UPDATE_INSTANCE_INFO", "BOSS_KILL", "ENCOUNTER_END",
+            "QUEST_ACCEPTED", "QUEST_TURNED_IN" }) do pcall(self.RegisterEvent, self, e) end
         -- alte Charaktere (60 Tage nicht gesehen) aufraeumen
         local t = TR.db()
         for k, c in pairs(t.chars) do if (c.seen or 0) < time() - 60 * 86400 then t.chars[k] = nil end end
@@ -330,7 +450,7 @@ local function MakeRow(p, x, y)
     r:SetScript("OnClick", function()
         local e = r.e
         if not e then return end
-        if e.task then TR.ToggleTask(e.task.id)
+        if e.task and not e.task.quest then TR.ToggleTask(e.task.id)
         elseif e.raid then TR.ToggleRaid(e.raid) end
     end)
     r:SetScript("OnEnter", function(s)
@@ -338,7 +458,9 @@ local function MakeRow(p, x, y)
         if s.e then
             GameTooltip:SetOwner(s, "ANCHOR_RIGHT")
             GameTooltip:SetText(s.e.text, 1, 1, 1)
-            if s.e.task then GameTooltip:AddLine("Klick: abhaken / wieder öffnen", C.dim[1], C.dim[2], C.dim[3])
+            if s.e.questHint then GameTooltip:AddLine(s.e.questHint, C.dim[1], C.dim[2], C.dim[3], true) end
+            if s.e.task and s.e.task.quest then GameTooltip:AddLine("Quest " .. s.e.task.quest .. " – hakt sich selbst ab, sobald du sie abgibst.", C.dim[1], C.dim[2], C.dim[3], true)
+            elseif s.e.task then GameTooltip:AddLine("Klick: abhaken / wieder öffnen", C.dim[1], C.dim[2], C.dim[3])
             elseif s.e.raid then GameTooltip:AddLine("Hakt sich selbst ab, sobald alle Bosse liegen.\nKlick: aus der Liste nehmen (solange keine ID besteht).", C.dim[1], C.dim[2], C.dim[3], true)
             else GameTooltip:AddLine("Hakt sich selbst ab.", C.dim[1], C.dim[2], C.dim[3]) end
             GameTooltip:Show()
@@ -427,7 +549,7 @@ function UI:Create(p)
     self.edit = e
     local hint = card:CreateFontString(nil, "OVERLAY", "GameFontDisable")
     hint:SetPoint("LEFT", e, "LEFT", 2, 0)
-    hint:SetText("Eigene Aufgabe, z. B. „Kochen skillen“, „Ony-Kopf abgeben“ ...")
+    hint:SetText("Eigene Aufgabe (z. B. „Kochen skillen“) oder Quest-ID / Wowhead-Link")
     self.editHint = hint
     e:SetScript("OnTextChanged", function(s) hint:SetShown((s:GetText() or "") == "" and not s:HasFocus()) end)
     e:SetScript("OnEditFocusGained", function() hint:Hide() end)
