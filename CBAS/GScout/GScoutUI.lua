@@ -5,15 +5,16 @@ ns.UI = UI
 
 local ROWS, ROW_H = 18, 20
 local COLS = {
-    { key = "name",    label = "Gilde",    w = 126, align = "LEFT" },
-    { key = "faction", label = "Fr.",      w = 20 },
-    { key = "lang",    label = "Spr.",     w = 32 },
-    { key = "members", label = "Größe",    w = 50 },
-    { key = "max",     label = "60er",     w = 32 },
-    { key = "score",   label = "Leistung", w = 46 },
-    { key = "recruit", label = "Rekrut.",  w = 52 },
-    { key = "loot",    label = "Loot",     w = 68, align = "LEFT" },
-    { key = "rating",  label = "Wert.",    w = 36 },
+    { key = "name",    label = "Gilde",    w = 112, align = "LEFT" },
+    { key = "faction", label = "Fr.",      w = 18 },
+    { key = "lang",    label = "Spr.",     w = 30 },
+    { key = "members", label = "Größe",    w = 44 },
+    { key = "max",     label = "60er",     w = 30 },
+    { key = "score",   label = "Leistung", w = 44 },
+    { key = "recruit", label = "Rekrut.",  w = 46 },
+    { key = "wanted",  label = "Sucht",    w = 62, align = "LEFT" },
+    { key = "loot",    label = "Loot",     w = 56, align = "LEFT" },
+    { key = "rating",  label = "Wert.",    w = 30 },
 }
 
 UI.sortKey = "recruit"
@@ -25,6 +26,44 @@ local function ClassColor(file)
     local c = RAID_CLASS_COLORS and RAID_CLASS_COLORS[file]
     if c and c.colorStr then return "|c" .. c.colorStr end
     return "|cffffffff"
+end
+
+-- gesuchte Klassen als kleine Symbole (eigene Klasse zuerst); alte Angaben (> 30 Tage) grau
+local CLASS_TEX = "Interface\\Glues\\CharacterCreate\\UI-CharacterCreate-Classes"
+local ROLE_TEX = "Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES"
+local CLASS_COORDS = {
+    WARRIOR = { 0, 0.25, 0, 0.25 }, MAGE = { 0.25, 0.49609375, 0, 0.25 }, ROGUE = { 0.49609375, 0.7421875, 0, 0.25 },
+    DRUID = { 0.7421875, 0.98828125, 0, 0.25 }, HUNTER = { 0, 0.25, 0.25, 0.5 }, SHAMAN = { 0.25, 0.49609375, 0.25, 0.5 },
+    PRIEST = { 0.49609375, 0.7421875, 0.25, 0.5 }, WARLOCK = { 0.7421875, 0.98828125, 0.25, 0.5 }, PALADIN = { 0, 0.25, 0.5, 0.75 },
+}
+local ROLE_COORDS = { TANK = { 0, 19, 22, 41 }, HEAL = { 20, 39, 1, 20 }, DPS = { 20, 39, 22, 41 } }
+local CLASS_ORDER = { "WARRIOR", "PALADIN", "HUNTER", "ROGUE", "PRIEST", "SHAMAN", "MAGE", "WARLOCK", "DRUID", "TANK", "HEAL", "DPS" }
+
+local function Icon(w, stale)
+    local col = stale and ":110:110:110" or ""
+    local c = (CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[w]) or CLASS_COORDS[w]
+    if c then
+        return string.format("|T%s:13:13:0:0:256:256:%d:%d:%d:%d%s|t", CLASS_TEX,
+            math.floor(c[1] * 256), math.floor(c[2] * 256), math.floor(c[3] * 256), math.floor(c[4] * 256), col)
+    end
+    local r = ROLE_COORDS[w]
+    if r then return string.format("|T%s:13:13:0:0:64:64:%d:%d:%d:%d%s|t", ROLE_TEX, r[1], r[2], r[3], r[4], col) end
+    return ""
+end
+
+function UI.WantedIcons(g, max)
+    if not g.wanted or not next(g.wanted) then return nil end
+    local stale = (g.wantedTime or 0) < time() - 30 * 86400
+    local _, my = UnitClass("player")
+    local list = {}
+    if my and g.wanted[my] then list[1] = my end
+    for _, w in ipairs(CLASS_ORDER) do if g.wanted[w] and w ~= my then list[#list + 1] = w end end
+    max = max or 4
+    local out = {}
+    for i = 1, math.min(#list, max) do out[i] = Icon(list[i], stale) end
+    local txt = table.concat(out, "")
+    if #list > max then txt = txt .. "|cff888888+" .. (#list - max) .. "|r" end
+    return txt, list, stale
 end
 
 local function ClassName(file)
@@ -56,6 +95,13 @@ local function SortValue(e, key)
     if key == "score" then return e.score or 0 end
     if key == "recruit" then return g.recruit.last or 0 end
     if key == "loot" then return ns.LootString(g):lower() end
+    if key == "wanted" then
+        -- sucht meine Klasse (frisch) zuerst, dann nach Aktualitaet
+        if not g.wanted or not next(g.wanted) then return 0 end
+        local _, my = UnitClass("player")
+        local fresh = (g.wantedTime or 0) >= time() - 30 * 86400
+        return ((my and g.wanted[my] and fresh) and 1e10 or 0) + (g.wantedTime or 0)
+    end
     if key == "inst" then
         local f = UI.instFilter
         local ie = f and g.instances and g.instances[f]
@@ -271,6 +317,13 @@ function UI:Create(parent)
         end)
     end
 
+    -- zuletzt gewaehlte Sortierung wiederherstellen
+    local gs = ns.db and ns.db.settings.gsSort
+    if gs and gs[1] then
+        local known = false
+        for _, c in ipairs(COLS) do if c.key == gs[1] then known = true end end
+        if known or gs[1] == "inst" then self.sortKey, self.sortDesc = gs[1], gs[2] and true or false end
+    end
     -- Spaltenkoepfe
     local x = 16
     self.headers = {}
@@ -382,7 +435,15 @@ function UI:Create(parent)
     local listBtn = Btn("Liste scannen", 112, "normal")
     listBtn:SetPoint("LEFT", menuBtn, "RIGHT", 6, 0)
     listBtn:SetScript("OnClick", function() UI:HideScanMenu() UI:ListScanStep() end)
-    Tip(listBtn, "Jeder Klick: /who auf die nächste Gilde der Liste - von oben nach unten, genau in der angezeigten Reihenfolge (Filter und Sortierung gelten).\nDie Gilde wird markiert, die Liste scrollt mit. Gilden, die in den letzten 6 Std. schon dran waren, werden übersprungen.\nAm Ende geht es wieder oben los. Wartezeit 5 s.")
+    listBtn:HookScript("OnEnter", function(b)
+        GameTooltip:SetOwner(b, "ANCHOR_TOP")
+        GameTooltip:SetText("Liste scannen", 1, 1, 1)
+        GameTooltip:AddLine("Reihenfolge: " .. UI:ListScanOrderText(), 0.4, 1, 0.4)
+        GameTooltip:AddLine("Jeder Klick: /who auf die nächste Gilde - von oben nach unten, so wie DU die Liste sortiert und gefiltert hast. Zum Umstellen einfach auf eine Spaltenüberschrift klicken; dann beginnt der Scan wieder oben.", 1, 1, 1, true)
+        GameTooltip:AddLine("Gilden, die in den letzten 6 Std. schon dran waren, werden übersprungen. Am Ende geht es wieder oben los. Wartezeit 5 s.", 0.7, 0.7, 0.7, true)
+        GameTooltip:Show()
+    end)
+    listBtn:HookScript("OnLeave", GameTooltip_Hide)
     self.listBtn = listBtn
     local nextLbl = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     nextLbl:SetPoint("LEFT", listBtn, "RIGHT", 10, 0)
@@ -514,7 +575,7 @@ end
 ---------------------------------------------------------------------------
 function UI:CreateDetail(f)
     local d = CreateFrame("Frame", nil, f, "BackdropTemplate")
-    d:SetPoint("TOPLEFT", 530, -60)
+    d:SetPoint("TOPLEFT", 534, -60)
     d:SetPoint("BOTTOMRIGHT", -12, 42)
     Backdrop(d)
     self.detail = d
@@ -1082,9 +1143,10 @@ function UI:UpdateRows()
             else
                 row.cells[7]:SetText("|cff555555-|r")
             end
+            row.cells[8]:SetText((UI.WantedIcons(g)) or "|cff555555-|r")
             local loot = ns.LootString(g)
-            row.cells[8]:SetText(loot ~= "" and loot or "|cff555555-|r")
-            row.cells[9]:SetText((g.rating or 0) > 0 and ("|cffffd100" .. g.rating .. "/5|r") or "|cff555555-|r")
+            row.cells[9]:SetText(loot ~= "" and loot or "|cff555555-|r")
+            row.cells[10]:SetText((g.rating or 0) > 0 and ("|cffffd100" .. g.rating .. "/5|r") or "|cff555555-|r")
             if self.selected == e.key then row.sel:Show() else row.sel:Hide() end
             row:Show()
         else
@@ -1105,40 +1167,76 @@ function UI:ListScanState()
     return ns.db.settings.listScan
 end
 
--- Position der zuletzt gescannten Gilde in der aktuellen Liste (0 = noch keine)
+local SORT_NAMES = { name = "Name", faction = "Fraktion", lang = "Sprache", members = "Größe", max = "60er", score = "Leistung",
+    recruit = "Rekrutierung", wanted = "gesuchte Klassen", loot = "Loot", rating = "Wertung", inst = "Instanz" }
+
+-- Kennung der aktuellen Sortierung + Filter: aendert sie sich, beginnt der Listen-Scan wieder oben
+function UI:ListScanSig()
+    local function on(cb) return cb and cb:GetChecked() and "1" or "0" end
+    return table.concat({ self.sortKey or "", self.sortDesc and "d" or "a", (self.search and self.search:GetText() or ""):lower(),
+        on(self.cbRecruit), on(self.cbFaction), on(self.cbBlacklist), on(self.cbTop), self.instFilter or "" }, "|")
+end
+
+function UI:ListScanOrderText()
+    return "nach " .. (SORT_NAMES[self.sortKey] or self.sortKey or "?") .. (self.sortDesc and " (absteigend)" or " (aufsteigend)")
+end
+
+-- Reihenfolge einmal festhalten, damit neue Scan-Ergebnisse die Liste waehrend des Durchlaufs nicht umwerfen
+function UI:ListScanOrder()
+    local st = self:ListScanState()
+    local sig = self:ListScanSig()
+    local o = self.scanOrder
+    if not o or o.sig ~= sig then
+        if not self.list or #self.list == 0 then self:BuildList() end
+        o = { sig = sig, keys = {} }
+        for i, e in ipairs(self.list or {}) do o.keys[i] = e.key end
+        self.scanOrder = o
+        if st.sig ~= sig then st.sig, st.key, st.pos = sig, nil, 0 end
+    end
+    return o.keys
+end
+
+-- Position der zuletzt gescannten Gilde (0 = noch keine)
 function UI:ListScanPos()
     local st = self:ListScanState()
+    local keys = self:ListScanOrder()
     if st.key then
-        for i, e in ipairs(self.list or {}) do if e.key == st.key then return i end end
+        for i, k in ipairs(keys) do if k == st.key then return i end end
     end
-    return math.min(st.pos or 0, #(self.list or {}))
+    return math.min(st.pos or 0, #keys)
 end
 
 function UI:ListScanLabel()
-    local n = #(self.list or {})
-    if n == 0 then return "Liste scannen" end
-    return string.format("Liste %d/%d", self:ListScanPos(), n)
+    local keys = self:ListScanOrder()
+    if #keys == 0 then return "Liste scannen" end
+    return string.format("Liste %d/%d", self:ListScanPos(), #keys)
 end
 
 function UI:ListScanStep()
-    if not self.list or #self.list == 0 then self:BuildList() end
-    local list = self.list or {}
-    if #list == 0 then ns.Print("Die Liste ist leer - Filter prüfen.") return end
+    local keys = self:ListScanOrder()
+    if #keys == 0 then ns.Print("Die Liste ist leer - Filter prüfen.") return end
     local st = self:ListScanState()
     local start = self:ListScanPos() + 1
     local now = time()
-    for step = 0, #list - 1 do
-        local i = ((start - 1 + step) % #list) + 1
-        local e = list[i]
-        if not e.g.pseudo and now - (e.g.whoScanT or 0) >= UI.LIST_FRESH then
+    for step = 0, #keys - 1 do
+        local i = ((start - 1 + step) % #keys) + 1
+        local key = keys[i]
+        local g = ns.db.guilds[key]
+        if g and not g.pseudo and now - (g.whoScanT or 0) >= UI.LIST_FRESH then
             local before = ns.lastWho
-            ns.WhoGuild(e.key)
+            ns.WhoGuild(key)
             if ns.lastWho ~= before then
-                e.g.whoScanT = now
-                st.key, st.pos = e.key, i
-                -- Zeile markieren und sichtbar machen
-                self.selected = e.key
-                if i <= self.offset or i > self.offset + ROWS then self.offset = math.max(0, i - 3) end
+                g.whoScanT = now
+                st.key, st.pos = key, i
+                -- Zeile markieren und sichtbar machen (Position in der aktuell angezeigten Liste)
+                self.selected = key
+                self:BuildList()
+                for j, e in ipairs(self.list) do
+                    if e.key == key then
+                        if j <= self.offset or j > self.offset + ROWS then self.offset = math.max(0, j - 3) end
+                        break
+                    end
+                end
                 self:Refresh()
             end
             return
@@ -1206,6 +1304,7 @@ end
 
 function UI:Refresh()
     if not self.frame or not self.frame:IsVisible() then return end
+    if ns.db and ns.db.settings then ns.db.settings.gsSort = { self.sortKey, self.sortDesc and true or false } end
     self:BuildList()
     local maxO = math.max(0, #self.list - ROWS)
     if self.offset > maxO then self.offset = maxO end

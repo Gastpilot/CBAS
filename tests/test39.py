@@ -109,3 +109,33 @@ print("Sperre:", run('CBAS.UI:ListScanStep()'), ev('CBAS.UI.listBtn:GetText()'))
 la.execute('for _,g in pairs(CBAS.db.guilds) do g.whoScanT=time() end NOWT=NOWT+10 LASTQ=nil')
 print("alles frisch:", run('CBAS.UI:ListScanStep()'), ev('LASTQ'))
 print("Slash:", run('CBAS.db.settings.listScan=nil for _,g in pairs(CBAS.db.guilds) do g.whoScanT=nil end NOWT=NOWT+10 SlashCmdList.CBAS("liste")'), ev('LASTQ'))
+# 2.29.1: Listen-Scan folgt der eigenen Sortierung; Spalte "Sucht"
+la.execute('''local m={Alpha=5,Bravo=40,Charlie=12,Delta=25} for _,g in pairs(CBAS.db.guilds) do if m[g.name] then g.memberCount=m[g.name] end g.whoScanT=nil end
+CBAS.UI.sortKey="members" CBAS.UI.sortDesc=true CBAS.UI:Refresh()''')
+print("Reihenfolge Anzeige (Größe ab):", [ev('CBAS.UI.list[%d].g.name'%i) for i in range(1,ev('#CBAS.UI.list')+1)])
+got=[]
+for i in range(3):
+    la.execute('NOWT=NOWT+10')
+    run('CBAS.UI:ListScanStep()')
+    got.append(ev('LASTQ'))
+    if i==0:
+        # Daten aendern sich waehrend des Scans: Charlie wird riesig -> Reihenfolge bleibt fest
+        la.execute('for _,g in pairs(CBAS.db.guilds) do if g.name=="Charlie" then g.memberCount=99 end end CBAS.UI:Refresh()')
+print("Scan-Reihenfolge:", got, "| Label:", ev('CBAS.UI:ListScanLabel()'))
+print("Reihenfolge-Text:", ev('CBAS.UI:ListScanOrderText()'))
+# Umsortieren -> wieder oben
+la.execute('for _,g in pairs(CBAS.db.guilds) do g.whoScanT=nil end CBAS.UI.sortKey="name" CBAS.UI.sortDesc=true CBAS.UI:Refresh() NOWT=NOWT+10')
+print("nach Umsortieren:", ev('CBAS.UI:ListScanLabel()'), run('CBAS.UI:ListScanStep()'), ev('LASTQ'))
+print("Sortierung gemerkt:", ev('CBAS.db.settings.gsSort[1]'), ev('CBAS.db.settings.gsSort[2]'))
+# Spalte Sucht
+la.execute('''for _,g in pairs(CBAS.db.guilds) do if g.name=="Bravo" then g.wanted={PRIEST=true,MAGE=true,TANK=true} g.wantedTime=time() end
+if g.name=="Delta" then g.wanted={WARRIOR=true,ROGUE=true,HUNTER=true,DRUID=true,SHAMAN=true} g.wantedTime=time()-40*86400 end end
+CBAS.UI:Refresh()''')
+for i in range(1,ev('#CBAS.UI.list')+1):
+    nm=ev('CBAS.UI.list[%d].g.name'%i)
+    if nm in ("Bravo","Delta"):
+        print("  Sucht", nm, ":", ev('CBAS.UI.WantedIcons(CBAS.UI.list[%d].g)'%i))
+print("Kopf:", [ev('CBAS.UI.headers[%d].col.label'%i) for i in range(1,11)])
+la.execute('CBAS.UI.sortKey="wanted" CBAS.UI.sortDesc=true CBAS.UI:Refresh()')
+print("nach 'Sucht' sortiert (Mage zuerst):", [ev('CBAS.UI.list[%d].g.name'%i) for i in range(1,4)])
+print("Zelle:", ev('CBAS.UI.rows[1].cells[8]:GetText()')[:60])
