@@ -153,6 +153,17 @@ local function RowValues(g)
     return c
 end
 
+-- "Mini-Gilde": vermutlich Bank-/Lagergilde - nur EIN bekannter Charakter, und der ist unter Max-Level.
+-- Nie ausgeblendet: Rekrutierer, Favoriten, gewertete, notierte und Blacklist-Gilden, Platzhalter.
+function UI.IsMini(g, atMax)
+    if g.pseudo or g.favorite or g.blacklist or (g.rating or 0) > 0 or (g.notes or "") ~= "" then return false end
+    if g.recruit and g.recruit.last then return false end
+    if (atMax or 0) > 0 then return false end
+    local size = math.max(g.memberCount or 0, (g.inspect and g.inspect.members) or 0, g.whoMaxOnline or 0,
+        (g.finder and tonumber(g.finder.members)) or 0, g.statedSize or 0)
+    return size <= 1
+end
+
 function UI:BuildList()
     local list = {}
     local all = {}
@@ -170,8 +181,9 @@ function UI:BuildList()
     local onlyRecruit = self.cbRecruit and self.cbRecruit:GetChecked()
     local onlyFaction = self.cbFaction and self.cbFaction:GetChecked()
     local hideBL = self.cbBlacklist and self.cbBlacklist:GetChecked()
+    local hideMini = self.cbMini and self.cbMini:GetChecked()
     local myFaction = UnitFactionGroup("player")
-    local nRecruit = 0
+    local nRecruit, nMini = 0, 0
     for key, g in pairs(all) do
         local recruiting = ns.IsRecruiting(g)
         if recruiting then nRecruit = nRecruit + 1 end
@@ -188,6 +200,7 @@ function UI:BuildList()
             if not hay:find(search, 1, true) then ok = false end
         end
         local rv = ok and RowValues(g)
+        if ok and hideMini and UI.IsMini(g, rv.atMax) then ok = false; nMini = nMini + 1 end
         if ok and self.cbTop and self.cbTop:GetChecked() and (rv.score or 0) < 50 then ok = false end
         if ok then
             list[#list + 1] = { key = key, g = g, atMax = rv.atMax, score = rv.score or 0, scoreText = rv.scoreText }
@@ -204,6 +217,7 @@ function UI:BuildList()
     end)
     self.list = list
     self.totalRecruit = nRecruit
+    self.hiddenMini = nMini
 end
 
 ---------------------------------------------------------------------------
@@ -284,7 +298,7 @@ function UI:Create(parent)
     sl:SetPoint("TOPLEFT", 16, -36)
     sl:SetText("Suche:")
     local search = CreateFrame("EditBox", nil, f, "InputBoxTemplate")
-    search:SetSize(150, 20)
+    search:SetSize(120, 20)
     search:SetPoint("LEFT", sl, "RIGHT", 10, 0)
     search:SetAutoFocus(false)
     search:SetScript("OnTextChanged", function() UI.offset = 0; UI:Refresh() end)
@@ -303,15 +317,19 @@ function UI:Create(parent)
     self.cbBlacklist:SetChecked(true)
     self.cbTop = MakeCheck(f, "High Performer", "Nur Gilden mit Leistungswert ab 50 (stark/Top).\nBeim Anklicken wird nach Leistung sortiert.")
     self.cbTop:SetPoint("LEFT", self.cbBlacklist.label, "RIGHT", 12, -1)
-    local instBtn = MakeButton(f, "Instanz: alle", 175, 22)
+    self.cbMini = MakeCheck(f, "Ohne Mini", "Blendet Mini-Gilden aus: Gilden, von denen CBAS nur EINEN Charakter kennt, und der ist unter Stufe 60 - meist Bank- oder Lagergilden.\nImmer sichtbar bleiben Gilden mit Rekrutierungsnachricht, Notiz, Wertung, Favorit oder Blacklist.\nGilt auch für \"Liste scannen\".")
+    self.cbMini:SetPoint("LEFT", self.cbTop.label, "RIGHT", 12, -1)
+    self.cbMini:SetChecked(not (ns.db and ns.db.settings.gsShowMini))
+    local instBtn = MakeButton(f, "Instanz: alle", 145, 22)
     instBtn:SetPoint("TOPRIGHT", -16, -31)
     instBtn:SetScript("OnClick", function() UI:ToggleInstMenu() end)
     Tip(instBtn, "Nur Gilden zeigen, die in diesem Raid/Dungeon gesehen oder in ihrer Werbung genannt wurden.\nSortiert nach Aktivität (wie oft als Gruppe drin).")
     self.instBtn = instBtn
 
-    for _, cb in ipairs({ self.cbRecruit, self.cbFaction, self.cbBlacklist, self.cbTop }) do
+    for _, cb in ipairs({ self.cbRecruit, self.cbFaction, self.cbBlacklist, self.cbTop, self.cbMini }) do
         cb:SetScript("OnClick", function(c)
             if c == UI.cbTop and c:GetChecked() then UI.sortKey, UI.sortDesc = "score", true end
+            if c == UI.cbMini then ns.db.settings.gsShowMini = not c:GetChecked() or nil end
             UI.offset = 0
             UI:Refresh()
         end)
@@ -1174,7 +1192,7 @@ local SORT_NAMES = { name = "Name", faction = "Fraktion", lang = "Sprache", memb
 function UI:ListScanSig()
     local function on(cb) return cb and cb:GetChecked() and "1" or "0" end
     return table.concat({ self.sortKey or "", self.sortDesc and "d" or "a", (self.search and self.search:GetText() or ""):lower(),
-        on(self.cbRecruit), on(self.cbFaction), on(self.cbBlacklist), on(self.cbTop), self.instFilter or "" }, "|")
+        on(self.cbRecruit), on(self.cbFaction), on(self.cbBlacklist), on(self.cbTop), on(self.cbMini), self.instFilter or "" }, "|")
 end
 
 function UI:ListScanOrderText()
@@ -1321,8 +1339,9 @@ function UI:Refresh()
     for _ in pairs(ns.db.guilds) do total = total + 1 end
     local layer = ns.Layer and (ns.Layer.cur and ("Auslesen auf Layer " .. (ns.Layer.Label(ns.Layer.cur)) .. " (" .. ns.Layer.cur.zone .. ")")
         or "Layer unbekannt - NPC anvisieren") or ""
-    self.status:SetText(string.format("%d Gilden · %d rekrut. · %d angez. · %s\nChat: %d gelesen, %d erkannt · %s",
-        total, self.totalRecruit or 0, #self.list, layer, ns.chatSeen or 0, ns.chatHits or 0,
+    self.status:SetText(string.format("%d Gilden · %d rekrut. · %d angez.%s · %s\nChat: %d gelesen, %d erkannt · %s",
+        total, self.totalRecruit or 0, #self.list,
+        (self.hiddenMini or 0) > 0 and (" · |cff888888" .. self.hiddenMini .. " Mini ausgebl.|r") or "", layer, ns.chatSeen or 0, ns.chatHits or 0,
         ns.Sync and ns.Sync:StatusText() or ""))
     self:UpdateScanLabels()
     self:UpdateCooldowns()

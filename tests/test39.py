@@ -139,3 +139,25 @@ print("Kopf:", [ev('CBAS.UI.headers[%d].col.label'%i) for i in range(1,11)])
 la.execute('CBAS.UI.sortKey="wanted" CBAS.UI.sortDesc=true CBAS.UI:Refresh()')
 print("nach 'Sucht' sortiert (Mage zuerst):", [ev('CBAS.UI.list[%d].g.name'%i) for i in range(1,4)])
 print("Zelle:", ev('CBAS.UI.rows[1].cells[8]:GetText()')[:60])
+# 2.29.2: "Ohne Mini" blendet Ein-Charakter-Gilden unter 60 aus (Bankgilden)
+la.execute('''for _,n in ipairs({"Bank1","Bank2","Twink60","Notiz1"}) do CBAS.GetGuild(n, nil, true, "test") end
+for _,g in pairs(CBAS.db.guilds) do
+  if g.name=="Bank1" then g.members={["Lager Eins"]={level=5}} g.memberCount=1 end
+  if g.name=="Bank2" then g.members={} g.memberCount=1 end
+  if g.name=="Twink60" then g.members={["Max Mustermann"]={level=60}} g.memberCount=1 end
+  if g.name=="Notiz1" then g.members={["Lager Zwei"]={level=1}} g.memberCount=1 g.notes="Freunde" end
+  g.whoScanT=nil
+end
+CBAS.UI.sortKey="name" CBAS.UI.sortDesc=false CBAS.UI.cbRecruit:SetChecked(false) CBAS.UI.cbTop:SetChecked(false) CBAS.UI:Refresh()''')
+names=lambda: [ev('CBAS.UI.list[%d].g.name'%i) for i in range(1,ev('#CBAS.UI.list')+1)]
+print("Ohne Mini an:", ev('CBAS.UI.cbMini:GetChecked()'), names(), "| ausgebl.:", ev('CBAS.UI.hiddenMini'))
+print("Status:", ev('CBAS.UI.status:GetText()').split("\n")[0])
+la.execute('NOWT=NOWT+10 CBAS.UI.scanOrder=nil')
+seen=[]
+for i in range(8):
+    la.execute('NOWT=NOWT+10'); run('CBAS.UI:ListScanStep()'); seen.append(ev('LASTQ'))
+print("Liste scannen ohne Bankgilden:", [x for x in dict.fromkeys(seen)])
+la.execute('CBAS.UI.cbMini:SetChecked(false) CBAS.UI.cbMini._scripts.OnClick(CBAS.UI.cbMini)')
+print("Ohne Mini aus:", names(), "| gemerkt:", ev('CBAS.db.settings.gsShowMini'))
+la.execute('CBAS.UI.cbMini:SetChecked(true) CBAS.UI.cbMini._scripts.OnClick(CBAS.UI.cbMini)')
+print("wieder an:", ev('CBAS.db.settings.gsShowMini'), ev('#CBAS.UI.list'))

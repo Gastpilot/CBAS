@@ -5,7 +5,7 @@
 ## X-Website: https://github.com/Gastpilot/CBAS
 ## Category: Craphunt
 ## Author: Craphunt
-## Version: 2.29.1
+## Version: 2.29.2
 ## OptionalDeps: Auctionator, TradeSkillMaster
 ## SavedVariables: CBASDB, GildenScoutDB
 ## IconTexture: Interface\AddOns\CBAS\Media\Unicorn

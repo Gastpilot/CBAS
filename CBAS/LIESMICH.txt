@@ -1,4 +1,4 @@
-Craphunts Blacklisted Addon Suite (CBAS) 2.29.1 – Addon-Suite für WoW: Forever
+Craphunts Blacklisted Addon Suite (CBAS) 2.29.2 – Addon-Suite für WoW: Forever
 =====================================================
 
 AUFBAU DER SUITE (neu seit 2.25.0)
@@ -527,6 +527,12 @@ TIPPS
   DD) die Gilde laut ihrer Werbung sucht - als kleine Symbole, deine eigene
   Klasse zuerst. Grau = Angabe älter als 30 Tage. Sortieren nach "Sucht":
   Gilden, die gerade deine Klasse suchen, stehen oben.
+- "Ohne Mini" (neu in 2.29.2, standardmäßig an): blendet Mini-Gilden aus -
+  höchstens 1 bekannter Charakter und keiner davon 60 (meist Bank-Twinks bzw.
+  Bankgilden). Die zählen dann auch beim "Liste scannen" nicht mit. Nie
+  ausgeblendet: Favoriten, Blacklist, Gilden mit Notiz oder Bewertung, mit
+  Rekrutierungs-Werbung oder mit einem 60er. Die Statuszeile zeigt, wie viele
+  ausgeblendet sind; Haken raus zeigt alle (wird gemerkt).
 - "Gezielt ..." daneben öffnet ein Menü mit den einzelnen Scans (Rekrutierer
   zuordnen, Instanz, 60er-Gebiet, Level/Klasse, Hauptstadt), falls du gezielt
   etwas abfragen willst.
