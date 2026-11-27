@@ -297,8 +297,12 @@ function TR.Items()
             if q.period == "week" then week[#week + 1] = e else day[#day + 1] = e end
         end
     end
+    -- Heute: Mage-Studieren (nur Info)
+    TR.StudyItems(day)
     -- Woche: Pix-Xizzix-Weekly (wechselt jede Woche)
     TR.PixItems(week)
+    -- Woche: Field of Honor + Rangpunkte-Grenze
+    TR.FoHItems(week)
     -- Woche: Raids (gemerkte + alle mit aktueller ID)
     local lock = TR.Lockouts()
     local function RaidEntry(key, label, l)
@@ -346,7 +350,7 @@ end
 function TR.Count(list)
     local d, n = 0, 0
     for _, e in ipairs(list) do
-        if not e.sub then
+        if not e.sub and not e.info then
             n = n + 1
             if e.done then d = d + 1 end
         end
@@ -362,8 +366,8 @@ function TR.HomeRow()
     local dd, dn = TR.Count(day)
     local wd, wn = TR.Count(week)
     local open = {}
-    for _, e in ipairs(day) do if not e.done and not e.sub then open[#open + 1] = e.text end end
-    for _, e in ipairs(week) do if not e.done and not e.sub then open[#open + 1] = e.text end end
+    for _, e in ipairs(day) do if not e.done and not e.sub and not e.info then open[#open + 1] = e.text end end
+    for _, e in ipairs(week) do if not e.done and not e.sub and not e.info then open[#open + 1] = e.text end end
     local Hx = ns.T.HEX
     local r = { cat = "Tracker", target = "tracker" }
     r.title = string.format("Heute %d/%d  ·  Woche %d/%d erledigt", dd, dn, wd, wn)
@@ -477,9 +481,140 @@ function TR.PixItems(week)
     if not done and obj then e.detail = have .. "/" .. #(v.parts or {}) .. " Teile" end
 end
 
+---------------------------------------------------------------------------
+-- PvP-Saison: Field of Honor (Wizzik Dustfizz, Gadgetzan 51.8/27.2, ab 60) und Rangpunkte-Grenze
+-- Jede Saisonwoche schaltet eine Stufe frei; verpasste Stufen bleiben nachholbar.
+-- Saisonstart = Start von WoW Forever (EU-Reset Mi 04.11.2026). Quest-IDs fortlaufend ab 96912.
+---------------------------------------------------------------------------
+TR.FOH_NPC = "Wizzik Dustfizz"
+TR.FOH_FIRST = 96912
+TR.FOH_START = time({ year = 2026, month = 11, day = 4, hour = 4 })
+TR.FOH_GOALS = {
+    [1] = "10 Duelle gewinnen",
+    [2] = "3 Spiele Kriegshymnenschlucht beenden",
+    [3] = "25 Gegner in der Kriegshymnenschlucht besiegen",
+    [4] = "3 Spiele Arathibecken beenden",
+}
+TR.FOH_LEGACY = { [4] = true, [7] = true, [10] = true }
+-- Rangpunkte-Grenze je Saisonwoche (datamined, Stand 27.11.2026): Woche -> { Rang, RP }
+TR.RANK_CAP = { [1] = { 3, 2700 }, [2] = { 5, 5250 }, [3] = { 6, 6750 }, [4] = { 7, 8400 }, [10] = { 14, 24750 } }
+
+function TR.SeasonWeek()
+    local w = math.floor((time() - TR.FOH_START) / (7 * 86400)) + 1
+    return math.max(1, w)
+end
+
+function TR.IsFoH(id)
+    return type(id) == "number" and id >= TR.FOH_FIRST and id < TR.FOH_FIRST + 20
+end
+
+function TR.FoHItems(week)
+    local level = UnitLevel and tonumber(ns.S(UnitLevel("player"))) or 0
+    if level < 60 then return end
+    local sw = math.min(TR.SeasonWeek(), 20)
+    local open, inLogStep = {}, nil
+    for k = 1, sw do
+        local id = TR.FOH_FIRST + k - 1
+        if not QuestDone(id) then open[#open + 1] = k end
+        if QuestInLog(id) then inLogStep = k end
+    end
+    local e = { id = "foh", auto = true, text = "Field of Honor (PvP)", done = #open == 0,
+        questHint = "Wizzik Dustfizz, Gadgetzan (51.8, 27.2). Jede Woche eine neue Stufe, verpasste Stufen kannst du nachholen. Belohnung: Ehre und Rangpunkte, in Woche 4, 7 und 10 zusätzlich je 1 Legacy-Punkt." }
+    if #open > 0 then
+        e.partial = inLogStep ~= nil
+        e.detail = (#open == 1) and ("Woche " .. open[1] .. " offen") or (#open .. " Stufen offen")
+    end
+    week[#week + 1] = e
+    for i = 1, math.min(#open, 4) do
+        local k = open[i]
+        local id = TR.FOH_FIRST + k - 1
+        local goal = TR.FOH_GOALS[k] or (TR.QuestTitle(id) or "neue Stufe")
+        local obj = TR.Objectives(id)
+        local det = QuestInLog(id) and "im Questlog" or "bei Wizzik holen"
+        if obj and obj[1] and obj[1].text then det = obj[1].text end
+        week[#week + 1] = { id = "foh:" .. k, sub = true, auto = true, done = false, partial = QuestInLog(id),
+            text = "Woche " .. k .. ": " .. goal .. (TR.FOH_LEGACY[k] and " (+Legacy)" or ""), detail = det }
+    end
+    if #open > 4 then
+        week[#week + 1] = { id = "foh:more", sub = true, auto = true, done = false, text = "+" .. (#open - 4) .. " weitere Stufen" }
+    end
+    -- Rangpunkte-Grenze dieser Woche (nur Info, zaehlt nicht mit)
+    local cap
+    for w = sw, 1, -1 do if TR.RANK_CAP[w] then cap = (w == sw) and TR.RANK_CAP[w] or nil break end end
+    if sw >= 10 then cap = TR.RANK_CAP[10] end
+    week[#week + 1] = { id = "rankcap", info = true, auto = true, done = false,
+        text = "Rangpunkte-Grenze (Saisonwoche " .. sw .. ")",
+        detail = cap and ("Rang " .. cap[1] .. " · " .. cap[2] .. " RP") or "bis Rang 14 (24750 RP) ab Woche 10",
+        questHint = "So hoch kann diese Woche jeder kommen. Wer zurückliegt, holt bis zur Grenze auf; Punkte über der Grenze verfallen. Deinen Stand siehst du im PvP-Fenster (Taste H)." }
+end
+
+---------------------------------------------------------------------------
+-- Mage: Studieren in der Bibliothek (Lichtfeder -> Buendel Schriftrollen, Abklingzeit laut Spiel)
+-- Zauber-ID ist nicht veroeffentlicht: Suche ueber den Namen, beim ersten Wirken gemerkt.
+---------------------------------------------------------------------------
+TR.STUDY_NAMES = { "Studieren", "Study", "Studium" }
+TR.LIGHT_FEATHER = 17056
+
+local function SpellIDByName(name)
+    if C_Spell and C_Spell.GetSpellInfo then
+        local ok, info = pcall(C_Spell.GetSpellInfo, name)
+        if ok and type(info) == "table" and info.spellID then return tonumber(ns.S(info.spellID)) end
+    end
+    if GetSpellInfo then
+        local ok, _, _, _, _, _, _, id = pcall(GetSpellInfo, name)
+        if ok and id then return tonumber(ns.S(id)) end
+    end
+end
+
+function TR.StudySpell()
+    local t = TR.db()
+    if t.studyID then return t.studyID end
+    for _, n in ipairs(TR.STUDY_NAMES) do
+        local id = SpellIDByName(n)
+        if id then return id end
+    end
+end
+
+-- Restzeit in Sekunden (0 = bereit) oder nil, wenn unbekannt
+function TR.StudyCooldown(id)
+    if not id then return nil end
+    local start, dur
+    if C_Spell and C_Spell.GetSpellCooldown then
+        local ok, cd = pcall(C_Spell.GetSpellCooldown, id)
+        if ok and type(cd) == "table" then start, dur = tonumber(ns.S(cd.startTime)), tonumber(ns.S(cd.duration)) end
+    elseif GetSpellCooldown then
+        local ok, a, b = pcall(GetSpellCooldown, id)
+        if ok then start, dur = tonumber(ns.S(a)), tonumber(ns.S(b)) end
+    end
+    if not start or not dur then return nil end
+    if start == 0 or dur <= 1.5 then return 0 end
+    return math.max(0, start + dur - GetTime())
+end
+
+function TR.StudyItems(day)
+    local MG = ns.Mage
+    if not (MG and MG.IsMage()) then return end
+    local id = TR.StudySpell()
+    if not id then return end   -- noch nicht gelernt (erstes Bibliotheksbuch abgeben)
+    local feathers = MG.ItemCount and MG.ItemCount(TR.LIGHT_FEATHER) or 0
+    local cd = TR.StudyCooldown(id)
+    local e = { id = "study", info = true, auto = true, text = "Mage: Studieren (Bibliothek)",
+        questHint = "Lichtfeder + 6 s in einer Bibliothek (Magierturm Sturmwind, Königliche Bibliothek, Magierviertel Unterstadt) = Bündel mit 2-4 Schriftrollen." }
+    if cd and cd > 0 then
+        e.done = true
+        e.detail = "wieder in " .. Dur(cd)
+    else
+        e.done = false
+        e.partial = feathers > 0
+        e.detail = feathers > 0 and ("bereit · " .. feathers .. " Lichtfedern") or "|cffff5555keine Lichtfeder|r"
+    end
+    day[#day + 1] = e
+end
+
 -- Wiederholungsquest angenommen -> in den Tracker (Daily oder Weekly laut Spiel)
 function TR.OnQuestAccepted(id)
     for _, q in ipairs(TR.QUESTS) do if q.quest == id then return end end
+    if TR.IsFoH(id) then return end
     -- Pix-Quest (bekannt oder vom NPC Pix Xizzix): nur Woche merken, kein eigener Eintrag
     local npc = UnitName and ns.S(UnitName("npc"))
     if IsPix(id) or npc == TR.PIX_NPC then TR.PixLearn(id) return end
@@ -535,7 +670,23 @@ end
 
 local ev = CreateFrame("Frame")
 ev:RegisterEvent("PLAYER_LOGIN")
-ev:SetScript("OnEvent", function(self, event, a1, a2)
+ev:SetScript("OnEvent", function(self, event, a1, a2, ...)
+    if event == "UNIT_SPELLCAST_SUCCEEDED" then
+        -- Studieren gewirkt? Zauber-ID merken (Name aus dem Spiel)
+        if a1 == "player" then
+            local id = tonumber(ns.S((...)))
+            local nm
+            if id and C_Spell and C_Spell.GetSpellName then local ok, n = pcall(C_Spell.GetSpellName, id) nm = ok and ns.S(n) end
+            if id and not nm and GetSpellInfo then local ok, n = pcall(GetSpellInfo, id) nm = ok and ns.S(n) end
+            for _, n in ipairs(TR.STUDY_NAMES) do
+                if nm == n then TR.db().studyID = id TR.Changed() break end
+            end
+        end
+        return
+    elseif event == "SPELL_UPDATE_COOLDOWN" then
+        if TR.UI.panel and TR.UI.panel:IsVisible() then TR.Changed() end
+        return
+    end
     if event == "QUEST_DETAIL" or event == "GOSSIP_SHOW" or event == "QUEST_GREETING" then
         TR.PixFromNPC(event)
         return
@@ -555,7 +706,7 @@ ev:SetScript("OnEvent", function(self, event, a1, a2)
         HookWho()
         if RequestRaidInfo then pcall(RequestRaidInfo) end
         for _, e in ipairs({ "AUCTION_HOUSE_SHOW", "UPDATE_INSTANCE_INFO", "BOSS_KILL", "ENCOUNTER_END",
-            "QUEST_ACCEPTED", "QUEST_TURNED_IN", "QUEST_DETAIL", "QUEST_LOG_UPDATE", "GOSSIP_SHOW", "QUEST_GREETING" }) do
+            "QUEST_ACCEPTED", "QUEST_TURNED_IN", "QUEST_DETAIL", "UNIT_SPELLCAST_SUCCEEDED", "SPELL_UPDATE_COOLDOWN", "QUEST_LOG_UPDATE", "GOSSIP_SHOW", "QUEST_GREETING" }) do
             pcall(self.RegisterEvent, self, e)
         end
         -- alte Charaktere (60 Tage nicht gesehen) aufraeumen
@@ -579,7 +730,7 @@ HookWho()
 ---------------------------------------------------------------------------
 local UI = {}
 TR.UI = UI
-local COLW, ROW_H, NROWS = 404, 26, 13
+local COLW, ROW_H, NROWS = 404, 22, 16
 
 local function MakeRow(p, x, y)
     local T = ns.T
@@ -777,6 +928,7 @@ local function Fill(col, list, untilReset, label)
             r.name:SetPoint("LEFT", e.sub and 50 or 32, 0)
             r.name:SetPoint("RIGHT", -150, 0)
             r.name:SetFontObject(e.sub and "GameFontHighlightSmall" or "GameFontHighlight")
+            if e.info then r.name:SetText(e.text .. T.HEX.dim .. "  · Info|r") end
             if e.done then r.name:SetTextColor(C.dim[1], C.dim[2], C.dim[3]) else r.name:SetTextColor(C.text[1], C.text[2], C.text[3]) end
             r.det:SetText(e.detail or (e.done and (T.HEX.ok .. "erledigt|r") or ""))
             r.x:SetShown(e.task ~= nil)
