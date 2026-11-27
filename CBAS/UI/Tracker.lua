@@ -2,7 +2,7 @@
 -- Automatisch (hakt sich selbst ab):
 --   Heute: Auktionshaus besucht, GScout-Scans (Ziel einstellbar), Mage-Vorrat (nur Magier)
 --   Woche: Raid-IDs aus dem Spiel (Fortschritt "3/10", ZG/AQ20 mit eigenem 3-Tage-Reset)
---   Quests: die Forever-Weekly in Booty Bay (Pix Xizzix, ab 60) und JEDE angenommene
+--   Quests: die wechselnde Pix-Xizzix-Weekly in Beutebucht (ab 60, mit den drei Dungeons) und JEDE angenommene
 --   Daily/Weekly (das Spiel meldet, ob taeglich oder woechentlich) - abgehakt ueber das Spiel.
 -- Eigene Aufgaben: Text (oder Quest-ID / Wowhead-Link) + taeglich/woechentlich.
 -- Zurueckgesetzt wird zum Server-Reset (GetQuestResetTime / C_DateAndTime.GetSecondsUntilWeeklyReset).
@@ -86,10 +86,37 @@ end
 ---------------------------------------------------------------------------
 -- Quests: fest eingebaute Forever-Quests und Abfragen beim Spiel
 ---------------------------------------------------------------------------
-TR.QUESTS = {
-    -- WoW: Forever, seit 13.11.2026: Pix Xizzix, Beutebucht (28.4, 75.8); je ein Teil aus Duesterbruch Ost/West/Nord
-    { quest = 96076, period = "week", minLevel = 60, text = "Beutebucht-Weekly (Pix Xizzix)",
-      hint = "Je ein Teil vom Endboss in Düsterbruch Ost, West und Nord (Felvine Seed, Ancient Memento, Earthstone Diamond Pinky Ring). West und Nord brauchen den Mondsichelschlüssel. Belohnung: Beutel mit 10 bis 100 Gold." },
+-- Feste Quests ausser Pix (derzeit keine; Format: { quest, period, minLevel, text, hint })
+TR.QUESTS = {}
+
+---------------------------------------------------------------------------
+-- Pix Xizzix (Beutebucht, 28.4/75.8): Stufe-60-Weekly "In Demand", wechselt jede Woche.
+-- Je drei Teile von Endbossen dreier Dungeons. Belohnung: Undermine Satchel (10-100 Gold).
+-- Unbekannte neue Versionen lernt CBAS selbst (NPC-Name + Quest-Ziele aus dem Spiel).
+---------------------------------------------------------------------------
+TR.PIX_NPC = "Pix Xizzix"
+TR.PIX = {
+    [96076] = { name = "Ancient Elven Curiosities", short = "Düsterbruch", parts = {
+        { where = "Düsterbruch Ost",  boss = "Alzzin der Wildformer", item = "Felvine Seed" },
+        { where = "Düsterbruch West", boss = "Prinz Tortheldrin",     item = "Ancient Memento" },
+        { where = "Düsterbruch Nord", boss = "König Gordok",          item = "Earthstone Diamond Pinky Ring" } },
+      tip = "West und Nord brauchen den Mondsichelschlüssel (droppt Pusillin in Ost)." },
+    [96075] = { name = "Blackrock Legal Records", short = "Schwarzfels", parts = {
+        { where = "Obere Schwarzfelsspitze",  boss = "General Drakkisath",         item = "Nefarion's Remit" },
+        { where = "Untere Schwarzfelsspitze", boss = "Oberanführer Wyrmthalak",    item = "Overseer's License" },
+        { where = "Schwarzfelstiefen",        boss = "Imperator Dagran Thaurissan", item = "Bronzebeard Wedding Contract" } } },
+    [96087] = { name = "Plague Records", short = "Scholo & Strat", parts = {
+        { where = "Scholomance",          boss = "Dunkelmeister Gandling",      item = "Headmaster's Records" },
+        { where = "Stratholme (Untot)",   boss = "Baron Totenschwur",           item = "Grain Shipment Records" },
+        { where = "Stratholme (Lebend)",  boss = "Grand Crusader Dathrohan",    item = "Dathrohan's Correspondence" } } },
+    [96088] = { name = "Titan Relics", short = "Tempel, Blackmaw, Terrasse", parts = {
+        { where = "Versunkener Tempel",    boss = "Schemen von Eranikus", item = "Ysera's Tear" },
+        { where = "Blackmaw Hold",         boss = "Varrox Bleakhoof",     item = "Mark of Xavius" },
+        { where = "Terrasse des Formers",  boss = "Nanaya",               item = "Freya's Sigil" } } },
+}
+-- bekannte Wochen (Beginn des Wochen-Resets, Ortszeit) - nur Startwert, danach lernt CBAS selbst
+TR.PIX_SEEN = {
+    { from = time({ year = 2026, month = 11, day = 26, hour = 3 }), id = 96088 },   -- Titan Relics (EU-Reset 26.11.)
 }
 
 local function QuestDone(id)
@@ -106,6 +133,18 @@ local function QuestInLog(id)
         return ok and i ~= nil
     end
     return false
+end
+
+-- Quest-Ziele aus dem Questlog: { {text, finished}, ... } oder nil (nicht im Log)
+function TR.Objectives(id)
+    if not (C_QuestLog and C_QuestLog.GetQuestObjectives) or not QuestInLog(id) then return nil end
+    local ok, list = pcall(C_QuestLog.GetQuestObjectives, id)
+    if not ok or type(list) ~= "table" then return nil end
+    local out = {}
+    for i, o in ipairs(list) do
+        out[i] = { text = ns.S(o.text), finished = ns.S(o.finished) and true or false }
+    end
+    return out
 end
 
 function TR.QuestTitle(id)
@@ -147,6 +186,7 @@ function TR.AddTask(text, period, questID)
     questID = questID or TR.ParseQuestID(text)
     if questID then
         for _, q in ipairs(TR.QUESTS) do if q.quest == questID then return nil, "Diese Quest ist schon fest im Tracker." end end
+        if TR.IsPix and TR.IsPix(questID) then return nil, "Die Pix-Weekly ist schon fest im Tracker." end
         if TR.FindQuestTask(questID) then return nil, "Diese Quest steht schon im Tracker." end
         if text == "" or TR.ParseQuestID(text) then text = TR.QuestTitle(questID) or ("Quest " .. questID) end
     end
@@ -257,6 +297,8 @@ function TR.Items()
             if q.period == "week" then week[#week + 1] = e else day[#day + 1] = e end
         end
     end
+    -- Woche: Pix-Xizzix-Weekly (wechselt jede Woche)
+    TR.PixItems(week)
     -- Woche: Raids (gemerkte + alle mit aktueller ID)
     local lock = TR.Lockouts()
     local function RaidEntry(key, label, l)
@@ -302,9 +344,14 @@ function TR.Items()
 end
 
 function TR.Count(list)
-    local d = 0
-    for _, e in ipairs(list) do if e.done then d = d + 1 end end
-    return d, #list
+    local d, n = 0, 0
+    for _, e in ipairs(list) do
+        if not e.sub then
+            n = n + 1
+            if e.done then d = d + 1 end
+        end
+    end
+    return d, n
 end
 
 ---------------------------------------------------------------------------
@@ -315,8 +362,8 @@ function TR.HomeRow()
     local dd, dn = TR.Count(day)
     local wd, wn = TR.Count(week)
     local open = {}
-    for _, e in ipairs(day) do if not e.done then open[#open + 1] = e.text end end
-    for _, e in ipairs(week) do if not e.done then open[#open + 1] = e.text end end
+    for _, e in ipairs(day) do if not e.done and not e.sub then open[#open + 1] = e.text end end
+    for _, e in ipairs(week) do if not e.done and not e.sub then open[#open + 1] = e.text end end
     local Hx = ns.T.HEX
     local r = { cat = "Tracker", target = "tracker" }
     r.title = string.format("Heute %d/%d  ·  Woche %d/%d erledigt", dd, dn, wd, wn)
@@ -339,13 +386,132 @@ end
 ---------------------------------------------------------------------------
 -- Ereignisse und Zaehler
 ---------------------------------------------------------------------------
+-- Pix: aktuelle Woche merken (fuer alle Charaktere bis zum naechsten Wochen-Reset)
+function TR.PixLearn(id, title)
+    if type(id) ~= "number" then return end
+    local t, c = TR.db()
+    if not TR.PIX[id] then
+        -- neue Version: Ziele aus dem Spiel uebernehmen (falls im Log), sonst nur der Name
+        local nm = title or TR.QuestTitle(id) or ("Quest " .. id)
+        nm = nm:gsub("^In Demand %s*[%-–]%s*", "")
+        local v = t.pixLearned and t.pixLearned[id] or { name = nm, parts = {} }
+        local obj = TR.Objectives(id)
+        if obj and #obj > 0 then
+            v.parts = {}
+            for i, o in ipairs(obj) do v.parts[i] = { where = o.text or ("Teil " .. i), boss = "", item = o.text or "" } end
+        end
+        t.pixLearned = t.pixLearned or {}
+        t.pixLearned[id] = v
+    end
+    t.pixWeek = { id = id, untilT = c.weekEnd }
+    TR.Changed()
+end
+
+function TR.PixInfo(id)
+    local t = TR.db()
+    return TR.PIX[id] or (t.pixLearned and t.pixLearned[id])
+end
+
+local function IsPix(id)
+    local t = TR.db()
+    return TR.PIX[id] ~= nil or (t.pixLearned and t.pixLearned[id] ~= nil)
+end
+TR.IsPix = IsPix
+
+-- welche Version laeuft diese Woche? -> id, Quelle ("log" | "done" | "learned" | "seed") oder nil
+function TR.PixCurrent()
+    local t, c = TR.db()
+    local ids = {}
+    for id in pairs(TR.PIX) do ids[#ids + 1] = id end
+    for id in pairs(t.pixLearned or {}) do ids[#ids + 1] = id end
+    for _, id in ipairs(ids) do if QuestInLog(id) then return id, "log" end end
+    for _, id in ipairs(ids) do if QuestDone(id) then return id, "done" end end
+    local w = t.pixWeek
+    if w and w.untilT and math.abs(w.untilT - (c.weekEnd or 0)) < 3600 and time() < w.untilT then return w.id, "learned" end
+    local now = time()
+    for _, s2 in ipairs(TR.PIX_SEEN) do
+        if now >= s2.from and now < s2.from + 7 * 86400 then return s2.id, "seed" end
+    end
+    return nil
+end
+
+-- Eintraege fuer die Wochen-Spalte: Kopfzeile + drei Unterzeilen
+function TR.PixItems(week)
+    local level = UnitLevel and tonumber(ns.S(UnitLevel("player"))) or 0
+    if level < 60 then return end
+    local id, src = TR.PixCurrent()
+    local v = id and TR.PixInfo(id)
+    local e = { id = "pix", auto = true, pix = true, text = "Pix-Weekly" .. (v and (": " .. v.name) or "") }
+    if not v then
+        e.detail = "Version unbekannt"
+        e.questHint = "Pix Xizzix in Beutebucht (28.4, 75.8) wechselt die Quest jede Woche. Sprich ihn an – CBAS merkt sich die Version für alle Charaktere."
+        week[#week + 1] = e
+        return
+    end
+    local done = QuestDone(id)
+    local inLog = QuestInLog(id)
+    e.done = done
+    e.questHint = "Pix Xizzix, Beutebucht (28.4, 75.8) · Belohnung: Undermine Satchel (10-100 Gold)" .. (v.tip and ("\n" .. v.tip) or "")
+        .. (src == "seed" and "\n(Version laut Stand 26.11. – bei Pix bestätigen)" or "")
+    if not done then
+        e.partial = inLog
+        e.detail = inLog and "im Questlog" or "bei Pix annehmen"
+    end
+    week[#week + 1] = e
+    local obj = (not done) and TR.Objectives(id)
+    local have = 0
+    for i, part in ipairs(v.parts or {}) do
+        local o = obj and obj[i]
+        if obj and part.item ~= "" then
+            for _, x in ipairs(obj) do
+                if x.text and x.text:lower():find(part.item:lower(), 1, true) then o = x break end
+            end
+        end
+        local pdone = done or (o and o.finished) or false
+        if pdone then have = have + 1 end
+        week[#week + 1] = { id = "pix:" .. i, sub = true, auto = true, done = pdone, text = part.where,
+            detail = (not pdone) and part.boss or nil,
+            questHint = (part.item ~= "" and (part.item .. (part.boss ~= "" and (" – droppt " .. part.boss) or "")) or part.where)
+                .. (o and o.text and ("\nIm Questlog: " .. o.text) or "") }
+    end
+    if not done and obj then e.detail = have .. "/" .. #(v.parts or {}) .. " Teile" end
+end
+
 -- Wiederholungsquest angenommen -> in den Tracker (Daily oder Weekly laut Spiel)
 function TR.OnQuestAccepted(id)
     for _, q in ipairs(TR.QUESTS) do if q.quest == id then return end end
+    -- Pix-Quest (bekannt oder vom NPC Pix Xizzix): nur Woche merken, kein eigener Eintrag
+    local npc = UnitName and ns.S(UnitName("npc"))
+    if IsPix(id) or npc == TR.PIX_NPC then TR.PixLearn(id) return end
     if TR.FindQuestTask(id) then return end
     local period = TR.QuestPeriod(id)
     if not period then return end
     return TR.AddTask(TR.QuestTitle(id) or ("Quest " .. id), period, id)
+end
+
+-- Gespraech mit Pix Xizzix: angebotene Quest erkennen
+function TR.PixFromNPC(event)
+    local npc = UnitName and ns.S(UnitName("npc"))
+    if npc ~= TR.PIX_NPC then return end
+    if event == "QUEST_DETAIL" and GetQuestID then
+        local ok, id = pcall(GetQuestID)
+        id = ok and tonumber(ns.S(id))
+        if id and id > 0 then
+            local title = GetTitleText and ns.S(GetTitleText())
+            TR.PixLearn(id, title)
+        end
+        return
+    end
+    if C_GossipInfo and C_GossipInfo.GetAvailableQuests then
+        local ok, list = pcall(C_GossipInfo.GetAvailableQuests)
+        for _, q in ipairs(ok and list or {}) do
+            local id = tonumber(ns.S(q.questID))
+            if id and (IsPix(id) or (q.repeatable and true) or (q.frequency and q.frequency ~= 0)) then
+                TR.PixLearn(id, ns.S(q.title))
+                return
+            end
+        end
+    end
 end
 
 local listeners = {}
@@ -370,6 +536,14 @@ end
 local ev = CreateFrame("Frame")
 ev:RegisterEvent("PLAYER_LOGIN")
 ev:SetScript("OnEvent", function(self, event, a1, a2)
+    if event == "QUEST_DETAIL" or event == "GOSSIP_SHOW" or event == "QUEST_GREETING" then
+        TR.PixFromNPC(event)
+        return
+    elseif event == "QUEST_LOG_UPDATE" then
+        -- nur neu zeichnen, wenn die Ansicht offen ist (kommt sehr oft)
+        if TR.UI.panel and TR.UI.panel:IsVisible() then TR.Changed() end
+        return
+    end
     if event == "QUEST_ACCEPTED" then
         -- Classic: (Index, questID), modern: (questID)
         local id = tonumber(ns.S(a2)) or tonumber(ns.S(a1))
@@ -381,7 +555,9 @@ ev:SetScript("OnEvent", function(self, event, a1, a2)
         HookWho()
         if RequestRaidInfo then pcall(RequestRaidInfo) end
         for _, e in ipairs({ "AUCTION_HOUSE_SHOW", "UPDATE_INSTANCE_INFO", "BOSS_KILL", "ENCOUNTER_END",
-            "QUEST_ACCEPTED", "QUEST_TURNED_IN" }) do pcall(self.RegisterEvent, self, e) end
+            "QUEST_ACCEPTED", "QUEST_TURNED_IN", "QUEST_DETAIL", "QUEST_LOG_UPDATE", "GOSSIP_SHOW", "QUEST_GREETING" }) do
+            pcall(self.RegisterEvent, self, e)
+        end
         -- alte Charaktere (60 Tage nicht gesehen) aufraeumen
         local t = TR.db()
         for k, c in pairs(t.chars) do if (c.seen or 0) < time() - 60 * 86400 then t.chars[k] = nil end end
@@ -403,7 +579,7 @@ HookWho()
 ---------------------------------------------------------------------------
 local UI = {}
 TR.UI = UI
-local COLW, ROW_H, NROWS = 404, 30, 10
+local COLW, ROW_H, NROWS = 404, 26, 13
 
 local function MakeRow(p, x, y)
     local T = ns.T
@@ -593,7 +769,14 @@ local function Fill(col, list, untilReset, label)
             local c = e.done and C.ok or (e.partial and C.warn or C.dim)
             r.tick:SetVertexColor(c[1], c[2], c[3], 1)
             r.tick:SetShown(e.done or e.partial or false)
-            r.name:SetText(e.text .. (e.auto and (T.HEX.dim .. "  · auto|r") or ""))
+            r.name:SetText(e.text .. ((e.auto and not e.sub) and (T.HEX.dim .. "  · auto|r") or ""))
+            r.box:ClearAllPoints()
+            r.box:SetPoint("LEFT", e.sub and 28 or 8, 0)
+            r.box:SetScale(e.sub and 0.8 or 1)
+            r.name:ClearAllPoints()
+            r.name:SetPoint("LEFT", e.sub and 50 or 32, 0)
+            r.name:SetPoint("RIGHT", -150, 0)
+            r.name:SetFontObject(e.sub and "GameFontHighlightSmall" or "GameFontHighlight")
             if e.done then r.name:SetTextColor(C.dim[1], C.dim[2], C.dim[3]) else r.name:SetTextColor(C.text[1], C.text[2], C.text[3]) end
             r.det:SetText(e.detail or (e.done and (T.HEX.ok .. "erledigt|r") or ""))
             r.x:SetShown(e.task ~= nil)

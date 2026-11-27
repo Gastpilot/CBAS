@@ -1,4 +1,4 @@
-Craphunts Blacklisted Addon Suite (CBAS) 2.28.1 – Addon-Suite für WoW: Forever
+Craphunts Blacklisted Addon Suite (CBAS) 2.28.2 – Addon-Suite für WoW: Forever
 =====================================================
 
 AUFBAU DER SUITE (neu seit 2.25.0)
@@ -244,16 +244,26 @@ TRACKER (Lage > Tracker, neu in 2.28.0, /crap tracker)
     ("3/8") und Reset; erledigt, wenn alle Bosse liegen. ZG/AQ20 haben ihren
     eigenen 3-Tage-Reset. Auch neue Forever-Raids erscheinen von selbst.
     Unten rechts weitere Raids zum Verfolgen anklicken.
-  * Beutebucht-Weekly (ab Stufe 60): "In Demand - Ancient Elven Curiosities"
-    bei Pix Xizzix in Beutebucht - je ein Teil von den Endbossen in Düsterbruch
-    Ost, West und Nord, Belohnung 10 bis 100 Gold. Zeigt "noch nicht
-    angenommen", "im Questlog" oder erledigt.
+  * Pix-Weekly (ab Stufe 60): Pix Xizzix in Beutebucht (28.4, 75.8) gibt
+    jede Woche eine andere "In Demand"-Quest - je ein Teil von den Endbossen
+    dreier Dungeons, Belohnung ein Beutel mit 10 bis 100 Gold. Der Tracker zeigt
+    die Version DIESER Woche mit den drei Dungeons und Bossen darunter:
+      Ancient Elven Curiosities: Düsterbruch Ost, West, Nord
+      Blackrock Legal Records: obere/untere Schwarzfelsspitze, Schwarzfelstiefen
+      Plague Records: Scholomance, Stratholme (Untot und Lebend)
+      Titan Relics: Versunkener Tempel, Blackmaw Hold, Terrasse des Formers
+    Welche Version läuft, lernt CBAS selbst: sobald du Pix ansprichst, die Quest
+    annimmst oder sie im Log hast - und merkt es sich für alle Charaktere bis
+    zum nächsten Reset. Im Questlog zeigt jede Dungeon-Zeile, ob du das Teil
+    schon hast ("1/3 Teile"). Kommt eine ganz neue Version dazu, übernimmt CBAS
+    deren Ziele direkt aus dem Spiel. Unfertige Pix-Quests verschwinden beim
+    Reset aus dem Log - rechtzeitig abgeben!
   * JEDE Daily oder Weekly, die du annimmst, landet von selbst im Tracker -
     das Spiel sagt CBAS, ob sie täglich oder wöchentlich ist. Abgehakt wird,
     sobald du sie abgibst. So sind auch neue Forever-Quests sofort drin.
 - Eigene Aufgaben: unten eintragen, "Täglich"/"Wöchentlich" wählen,
   "Hinzufügen" (oder Enter). Klick auf eine Zeile hakt ab, x löscht.
-  Statt Text geht auch eine Quest-ID oder ein Wowhead-Link (".../quest=96076")
+  Statt Text geht auch eine Quest-ID oder ein Wowhead-Link (".../quest=12345")
   - dann hakt das Spiel sie selbst ab.
   Höchstens 20. Die Liste gilt für alle Charaktere, die Haken je Charakter.
 - Reset: täglich bzw. wöchentlich zum Server-Reset (wie die Quests).
