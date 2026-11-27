@@ -90,3 +90,22 @@ for i in range(6):
     print("  Scan:", ev('CBAS.SmartScanLabel()'), "->", run('CBAS.SmartScanStep()'), ev('LASTQ'))
 print("Sperre:", run('CBAS.SmartScanStep()'), ev('CBAS.UI.nextBtn:GetText()'))
 print("Menü:", run('CBAS.UI:ToggleScanMenu()'), ev('CBAS.UI.scanMenu:IsShown()'), ev('CBAS.UI.zoneBtn:GetText()'))
+# 2.29.0: "Liste scannen" - angezeigte Liste von oben nach unten
+la.execute('for _,n in ipairs({"Alpha","Bravo","Charlie","Delta"}) do CBAS.GetGuild(n, nil, true, "test") end')
+la.execute('CBAS.UI:HideScanMenu() CBAS.Suite:Select("gscout") CBAS.UI.instFilter=nil CBAS.UI.sortKey="name" CBAS.UI.sortDesc=false if CBAS.UI.cbBlacklist then CBAS.UI.cbBlacklist:SetChecked(false) end CBAS.UI:Refresh() CBAS.db.settings.listScan=nil for _,g in pairs(CBAS.db.guilds) do g.whoScanT=nil end')
+n=ev('#CBAS.UI.list')
+print("Liste:", n, ev('CBAS.UI.listBtn:GetText()'))
+names=[ev('CBAS.UI.list[%d].g.name'%i) for i in range(1,min(n,4)+1)]
+got=[]
+for i in range(min(n,4)):
+    la.execute('NOWT=NOWT+10')
+    run('CBAS.UI:ListScanStep()')
+    got.append((ev('LASTQ'), ev('CBAS.UI.selected and CBAS.db.guilds[CBAS.UI.selected] and CBAS.db.guilds[CBAS.UI.selected].name'), ev('CBAS.UI:ListScanLabel()')))
+print("Reihenfolge Liste:", names)
+print("Gescannt:", got)
+la.execute('NOWT=NOWT+1')
+print("Sperre:", run('CBAS.UI:ListScanStep()'), ev('CBAS.UI.listBtn:GetText()'))
+# alles frisch gescannt -> Meldung statt /who
+la.execute('for _,g in pairs(CBAS.db.guilds) do g.whoScanT=time() end NOWT=NOWT+10 LASTQ=nil')
+print("alles frisch:", run('CBAS.UI:ListScanStep()'), ev('LASTQ'))
+print("Slash:", run('CBAS.db.settings.listScan=nil for _,g in pairs(CBAS.db.guilds) do g.whoScanT=nil end NOWT=NOWT+10 SlashCmdList.CBAS("liste")'), ev('LASTQ'))

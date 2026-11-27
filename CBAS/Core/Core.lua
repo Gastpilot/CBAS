@@ -2,7 +2,7 @@
 local ADDON, ns = ...
 _G.CBAS = ns
 
-ns.VERSION = "2.28.3"
+ns.VERSION = "2.29.0"
 local PREFIX = "|cff33ccffCBAS|r: "
 
 function ns.Print(...)

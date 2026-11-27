@@ -378,9 +378,15 @@ function UI:Create(parent)
     menuBtn:SetScript("OnClick", function() UI:ToggleScanMenu() end)
     Tip(menuBtn, "Gezielt scannen: eine bestimmte Scan-Art auswählen.")
     self.menuBtn = menuBtn
+    -- zweiter Scan: die angezeigte Liste von oben nach unten per "/who Gilde" abarbeiten
+    local listBtn = Btn("Liste scannen", 112, "normal")
+    listBtn:SetPoint("LEFT", menuBtn, "RIGHT", 6, 0)
+    listBtn:SetScript("OnClick", function() UI:HideScanMenu() UI:ListScanStep() end)
+    Tip(listBtn, "Jeder Klick: /who auf die nächste Gilde der Liste - von oben nach unten, genau in der angezeigten Reihenfolge (Filter und Sortierung gelten).\nDie Gilde wird markiert, die Liste scrollt mit. Gilden, die in den letzten 6 Std. schon dran waren, werden übersprungen.\nAm Ende geht es wieder oben los. Wartezeit 5 s.")
+    self.listBtn = listBtn
     local nextLbl = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    nextLbl:SetPoint("LEFT", menuBtn, "RIGHT", 10, 0)
-    nextLbl:SetWidth(300)
+    nextLbl:SetPoint("LEFT", listBtn, "RIGHT", 10, 0)
+    nextLbl:SetWidth(210)
     nextLbl:SetJustifyH("LEFT")
     nextLbl:SetWordWrap(false)
     nextLbl:SetTextColor(T.C.dim[1], T.C.dim[2], T.C.dim[3])
@@ -1089,6 +1095,58 @@ function UI:UpdateRows()
 end
 
 -- Normale Beschriftung der Scan-Knoepfe
+---------------------------------------------------------------------------
+-- "Liste scannen": angezeigte Liste von oben nach unten per /who abarbeiten (seit 2.29.0)
+---------------------------------------------------------------------------
+UI.LIST_FRESH = 6 * 3600   -- Gilden, die so frisch gescannt sind, werden uebersprungen
+
+function UI:ListScanState()
+    ns.db.settings.listScan = ns.db.settings.listScan or {}
+    return ns.db.settings.listScan
+end
+
+-- Position der zuletzt gescannten Gilde in der aktuellen Liste (0 = noch keine)
+function UI:ListScanPos()
+    local st = self:ListScanState()
+    if st.key then
+        for i, e in ipairs(self.list or {}) do if e.key == st.key then return i end end
+    end
+    return math.min(st.pos or 0, #(self.list or {}))
+end
+
+function UI:ListScanLabel()
+    local n = #(self.list or {})
+    if n == 0 then return "Liste scannen" end
+    return string.format("Liste %d/%d", self:ListScanPos(), n)
+end
+
+function UI:ListScanStep()
+    if not self.list or #self.list == 0 then self:BuildList() end
+    local list = self.list or {}
+    if #list == 0 then ns.Print("Die Liste ist leer - Filter prüfen.") return end
+    local st = self:ListScanState()
+    local start = self:ListScanPos() + 1
+    local now = time()
+    for step = 0, #list - 1 do
+        local i = ((start - 1 + step) % #list) + 1
+        local e = list[i]
+        if not e.g.pseudo and now - (e.g.whoScanT or 0) >= UI.LIST_FRESH then
+            local before = ns.lastWho
+            ns.WhoGuild(e.key)
+            if ns.lastWho ~= before then
+                e.g.whoScanT = now
+                st.key, st.pos = e.key, i
+                -- Zeile markieren und sichtbar machen
+                self.selected = e.key
+                if i <= self.offset or i > self.offset + ROWS then self.offset = math.max(0, i - 3) end
+                self:Refresh()
+            end
+            return
+        end
+    end
+    ns.Print("Liste komplett: alle angezeigten Gilden wurden in den letzten 6 Std. schon gescannt.")
+end
+
 function UI:ToggleScanMenu()
     if not self.scanMenu then return end
     self.scanMenu:SetShown(not self.scanMenu:IsShown())
@@ -1102,6 +1160,7 @@ function UI:UpdateScanLabels()
         self.nextLbl:SetText(ok and ("als Nächstes: " .. txt) or "")
     end
     if self.nextBtn and not self.cdActive then self.nextBtn:SetText("Weiter scannen") end
+    if self.listBtn and not self.cdActive then self.listBtn:SetText(self:ListScanLabel()) end
     self.pendBtn:SetText("Rekrutierer zuordnen (" .. ns.PendingCount() .. ")")
     if ns.scanSteps then
         self.scanBtn:SetText(string.format("Level/Klasse %d/%d", ns.scanIndex or 1, #ns.scanSteps))
@@ -1126,7 +1185,7 @@ function UI:UpdateCooldowns()
     if not self.scanBtn then return end
     local rem = ns.WhoCooldown()
     local btns = {
-        { self.nextBtn, "Weiter scannen" }, { self.scanBtn, "Who" }, { self.zoneBtn, "Inst" }, { self.z60Btn, "60er" },
+        { self.nextBtn, "Weiter scannen" }, { self.listBtn, "Liste" }, { self.scanBtn, "Who" }, { self.zoneBtn, "Inst" }, { self.z60Btn, "60er" },
         { self.capBtn, "Stadt" }, { self.pendBtn, "Zuordnen" }, { self.dWho, "/who" },
     }
     if rem > 0 then
@@ -1484,6 +1543,9 @@ SlashCmdList["CBAS"] = function(msg)
                     ns.Geier.VERDICT_TEXT[v] or v, reason or ""))
             end
         end
+    elseif cmd == "liste" or cmd == "listscan" then
+        ns.Suite:Toggle("gscout")
+        UI:ListScanStep()
     elseif cmd == "tracker" or cmd == "todo" then
         ns.Suite:Toggle("tracker")
     elseif cmd == "mage" or cmd == "magier" then

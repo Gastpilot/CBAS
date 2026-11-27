@@ -1,4 +1,4 @@
-Craphunts Blacklisted Addon Suite (CBAS) 2.28.3 – Addon-Suite für WoW: Forever
+Craphunts Blacklisted Addon Suite (CBAS) 2.29.0 – Addon-Suite für WoW: Forever
 =====================================================
 
 AUFBAU DER SUITE (neu seit 2.25.0)
@@ -513,6 +513,12 @@ TIPPS
   Rekrutierer zuordnen -> Instanz -> 60er-Gebiet -> Level/Klasse -> Hauptstadt.
   Volle Gebiete werden zuerst nach Klassen fertig abgefragt. Daneben steht, was
   als Nächstes kommt. Ein paar Mal am Abend durchklicken füllt die Datenbank schnell.
+- "Liste scannen" (neu in 2.29.0): arbeitet die Gildenliste von oben nach unten
+  ab - jeder Klick = /who auf die nächste Gilde, genau in der Reihenfolge, wie
+  die Liste gerade angezeigt wird (Filter und Sortierung gelten). Die Gilde wird
+  markiert, die Liste scrollt mit, der Knopf zeigt "Liste 12/340". Gilden, die
+  in den letzten 6 Std. schon dran waren, werden übersprungen; am Ende geht es
+  oben wieder los. Auch per /crap liste.
 - "Gezielt ..." daneben öffnet ein Menü mit den einzelnen Scans (Rekrutierer
   zuordnen, Instanz, 60er-Gebiet, Level/Klasse, Hauptstadt), falls du gezielt
   etwas abfragen willst.
@@ -525,6 +531,7 @@ TIPPS
 BEFEHLE
 /crap                 Fenster öffnen/schließen
 /crap scan            Weiter scannen (nächste sinnvolle /who-Abfrage)
+/crap liste           Liste scannen (nächste Gilde der Liste per /who)
 /crap mage            Mage-Dienste öffnen
 /crap tracker         Tracker öffnen (heute / diese Woche)
 /crap raidscan        nächster Raid-Scan-Schritt
